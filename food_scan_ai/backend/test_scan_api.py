@@ -47,4 +47,4 @@ try:
         print(f"⏱️ Processing Time   : {result['processing_time_ms']} ms\n")
 except Exception as e:
     print(f"\n❌ Error occurred: {e}")
-    print(" කරුණාකර 'python -m uvicorn app:app --reload --port 8000' මගින් Server එක Run වී ඇත්දැයි පරීක්ෂා කරන්න.")
+    print(" කරුණාකර 'python -m uvicorn main:app --reload --port 8000' මගින් Server එක Run වී ඇත්දැයි පරීක්ෂා කරන්න.")
