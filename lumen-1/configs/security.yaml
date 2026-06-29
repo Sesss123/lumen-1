@@ -1,0 +1,64 @@
+# Lumen-1 Advanced Security Configuration
+
+# Enable/Disable specific security layers
+# Layer 1: Input Guard (Prompt Injection, Normalize Unicode, Length Limit)
+# Layer 2: Rate Limiting (IP Limit, Burst Detection, GPU Abuse Guard)
+# Layer 3: File & Path Security (Path Traversal, Sanitizer, Magic Bytes)
+# Layer 4: API Security (CORS, Request Size, Security Headers)
+# Layer 5: Security Mode (Threat Classification, Output PII Scrubber, Audit Log)
+# Layer 6: Training Pipeline (Config Validation)
+# Layer 7: Request Encryption & Sessions (Optional Session tokens, HMAC request signature)
+# Layer 8: AI Misuse Prevention (Intent Classification, Persona Hijack Guard)
+# Layer 9: Zero Trust (Endpoint Authentication, IP Allowlist Mode)
+# Layer 10: Data Leak Prevention (DLP - Isolated views)
+# Layer 11: Cryptographic Checkpoint Integrity (Model Hash Validation, Chain Integrity)
+# Layer 12: Exception Sanitizer & Timing Protection
+enabled_layers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+
+# Zero Trust settings
+# REMINDER: Update this allowlist for production environments
+ip_allowlist_mode: false
+ip_allowlist:
+  - "127.0.0.1"
+  - "::1"
+
+# Endpoint Authorization API Key
+# Recommended: Set this via the environment variable LUMEN_API_KEY.
+# If not set in the environment, the key below will be used.
+api_key: "lumen_default_secure_api_key_2026"
+
+# Bug 6 Fix: Dedicated HMAC secret for audit log chain integrity.
+# IMPORTANT: Change this to a strong random value in production.
+# Generate one with: python -c "import secrets; print(secrets.token_hex(32))"
+# This key is SEPARATE from api_key — an API key leak cannot tamper audit logs.
+audit_hmac_secret: "lumen_audit_chain_secret_replace_in_production_2026"
+
+
+# Rate Limiting configuration
+rate_limiting:
+  limit: 10
+  window: 60
+  burst_limit: 20
+  burst_window: 5
+  burst_block_duration: 300  # 5 minutes block on abuse
+
+# File size settings in bytes
+request_size_limit: 10485760  # 10MB limit
+max_upload_size: 52428800     # 50MB limit
+
+# Session Management
+session_idle_timeout: 1800    # 30 minutes in seconds
+
+# GPU limit
+hard_max_new_tokens: 512
+
+# DLP Configurations
+dlp:
+  block_raw_downloads: true
+  mask_checkpoints_dir: true
+
+# Checkpoint Keys
+model_signing:
+  generate_keys_if_missing: true
+  private_key_path: "../checkpoints/signing_key.pem"
+  public_key_path: "../checkpoints/signing_key.pub"

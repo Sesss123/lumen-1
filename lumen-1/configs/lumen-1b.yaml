@@ -1,0 +1,22 @@
+model_size: "1b"
+
+hidden_size: 2048
+num_hidden_layers: 16
+num_attention_heads: 16
+num_key_value_heads: 4
+head_dim: 128
+intermediate_size: 7168
+vocab_size: 128256
+max_position_embeddings: 32768
+
+vision_hidden_size: 384
+vision_num_layers: 6
+vision_num_heads: 6
+vision_intermediate_size: 1536
+
+audio_hidden_size: 256
+audio_num_layers: 6
+audio_num_heads: 4
+
+projector_hidden_size: 2048
+use_gradient_checkpointing: false

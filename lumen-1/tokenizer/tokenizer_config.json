@@ -1,0 +1,25 @@
+{
+  "vocab_size": 400,
+  "special_tokens": {
+    "<image>": "<image>",
+    "</image>": "</image>",
+    "<audio>": "<audio>",
+    "</audio>": "</audio>",
+    "<video>": "<video>",
+    "</video>": "</video>",
+    "<memory>": "<memory>",
+    "</memory>": "</memory>",
+    "<|system|>": "<|system|>",
+    "<|user|>": "<|user|>",
+    "<|assistant|>": "<|assistant|>",
+    "<|tool|>": "<|tool|>",
+    "<|endoftext|>": "<|endoftext|>",
+    "<|refuse|>": "<|refuse|>",
+    "<|uncertain|>": "<|uncertain|>",
+    "<|vision_pad|>": "<|vision_pad|>",
+    "<|audio_pad|>": "<|audio_pad|>"
+  },
+  "bos_token": "<|endoftext|>",
+  "eos_token": "<|endoftext|>",
+  "pad_token": "<|endoftext|>"
+}

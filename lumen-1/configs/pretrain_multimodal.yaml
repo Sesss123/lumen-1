@@ -1,0 +1,14 @@
+stage: multimodal
+learning_rate: 1.0e-4
+min_lr: 1.0e-5
+batch_size_tokens: 2000000
+max_steps: 200000
+warmup_steps: 1000
+weight_decay: 0.1
+gradient_accumulation: 8
+save_every: 1000
+use_fsdp: true
+use_gradient_checkpointing: true
+loss_weight_vision: 0.3
+loss_weight_audio: 0.2
+loss_weight_alignment: 0.05

@@ -1,0 +1,46 @@
+# Python / Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+ENV/
+env/
+site-packages/
+*.egg-info/
+dist/
+build/
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# AI Model Checkpoints & Large Weights
+checkpoints/
+*.pth
+*.safetensors
+*.bin
+*.onnx
+*.gguf
+*.awq
+*.pt
+
+# Databases & Vector DBs
+chroma_db/
+*.sqlite
+*.sqlite3
+*.db
+
+# Logs & Temporary Files
+*.log
+scratch/
+-Force/
+
+# Node / JS Packages
+node_modules/
+package-lock.json
+yarn.lock

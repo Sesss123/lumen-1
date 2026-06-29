@@ -1,0 +1,13 @@
+[package]
+name = "lumen_rust_engine"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+candle-core = "0.4.1"
+candle-nn = "0.4.1"
+candle-transformers = "0.4.1"
+tokenizers = "0.15.2"
+anyhow = "1.0"
+
+# This allows running the AI model incredibly fast natively using Rust.

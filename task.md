@@ -1,0 +1,53 @@
+# Task Tracker - Lumen-1 AI Model Pipeline
+
+## Current Work
+- `[ ]` Monitoring system health during test runs
+
+## Completed Tasks
+- `[x]` Fix tuple literal type annotation bug in `resolve_nutrition` function in `app.py` - Completed on 2026-06-29
+- `[x]` Upgrade `app.py` to Tiered Architecture (Tier 1 & Tier 3) with deterministic Sri Lankan nutrition database & Claude system prompt - Completed on 2026-06-29
+- `[x]` Remove sample UI screens and maintain modular `food_scan_ai` backend REST API (`POST /api/food/scan`) for existing mobile app connection - Completed on 2026-06-29
+- `[x]` AI Food Scanner feature planning, architecture design, and user permission request - Completed on 2026-06-29
+- `[x]` Resolve and successfully run Google Colab Mistral SFT training pipeline with automated BF16/FP16 hardware autodetect and dynamic TRL parameter mapping - Completed on 2026-06-27
+- `[x]` Integrate dynamic Demo Mode badges and warning popups in the frontend and backend - Completed on 2026-06-27
+- `[x]` Redesign HTML structure into 5 sections (Overview, Training, Inference, Data, Security) with horizontal sub-tabs - Completed on 2026-06-27
+- `[x]` Apply new visual styles and Electric Blue color system in `style.css` - Completed on 2026-06-27
+- `[x]` Rewrite navigation routes, WebSockets threat listener, and API handlers in `main.js` - Completed on 2026-06-27
+- `[x]` **Security Bug Fix Batch (12 bugs)** — guards.py, pii_scrubber.py, rate_limiter.py, file_security.py, intent_classifier.py, dlp.py, audit_logger.py, app.py — Completed 2026-06-27
+- `[x]` Implement 12-Layer Advanced Security Architecture (lumen/security package) - Completed on 2026-06-27
+
+- `[x]` Integrate security layers in `dashboard/app.py` - Completed on 2026-06-27
+- `[x]` Verify security architecture with `verify_security.py` - Completed on 2026-06-27
+- `[x]` Configure security settings in `configs/security.yaml` - Completed on 2026-06-27
+- `[x]` Implement security fixes and guardrails in app.py and train_mistral_fast.py - Completed on 2026-06-27
+- `[x]` Upgrade `generate_sft_from_json.py` with localized, conversational, and budget Q&As - Completed on 2026-06-27
+- `[x]` Create `generate_sft_from_json.py` — Standalone Colab script to merge existing JSON files, deduplicate, and generate disambiguation-safe SFT JSONL training data - Completed on 2026-06-27
+- `[x]` Implement Phase 11: Evaluation Scorer, Hyperparameter Tuner, Multimodal Sandbox, and Live Alerts Sync - Completed on 2026-06-24
+- `[x]` Implement four advanced pipeline features: SFT/DPO Side-by-Side Model Arena, Leaflet RAG Voice Tour Guide simulator, Synthetic Q&A Dataset Generator, and Speculative Decoding Latency Profiler - Completed on 2026-06-24
+- `[x]` Implement four advanced control panel enhancements: Offline Quantization Exporter (GGUF/AWQ), Chat-to-SFT Dataset Exporter, Smart Route BFS Simulator with Leaflet overlay, and DPO Dataset Bias & Length Diagnostics Chart - Completed on 2026-06-24
+- `[x]` Implement dashboard enhancements: Local RAG travel database agent tool, live training mock metrics generator, and telemetry log exporter - Completed on 2026-06-24
+- `[x]` Implement real-time upgrades to Dashboard: WebSockets connection, persistent model loading, AI Agent mode, speculative decoding, and backend custom modes - Completed on 2026-06-24
+- `[x]` Add auto-download and early timeout threshold features to `colab_csv_processor.py` (Monitor running time to auto-save and trigger a browser download before the 5.5 hours limit is reached) - Completed on 2026-06-24
+- `[x]` Fix quantization TypeError in `colab_csv_processor.py` (Use `BitsAndBytesConfig` helper instead of passing `load_in_4bit` directly to `from_pretrained`) - Completed on 2026-06-24
+- `[x]` Optimize Colab model loading in `colab_csv_processor.py` (Add 4-bit quantization and garbage collection cache clear to resolve high RAM/VRAM issues) - Completed on 2026-06-24
+- `[x]` Fix python SyntaxError in `colab_csv_processor.py` (Remove malformed tripme_data dictionary assignment) - Completed on 2026-06-24
+- `[x]` Create Google Colab SFT CSV Processor Script (Auto package installation, dynamic CSV header detection, Qwen 2.5 local inference, structured JSON output validation, incremental backup saving) - Completed on 2026-06-24
+- `[x]` Implement CSV Dataset Studio & Validator (Upload, Column Mapping, Sinhala/English Data Quality Validation, ChatML/Conversational formatting, training integration) - Completed on 2026-06-24
+- `[x]` Implement Phase 7: Interactive AI Mode Upgrades (Live system prompt, custom mode creator, chat export) - Completed on 2026-06-23
+- `[x]` Refactor `export_model.py` to support command-line arguments (using `argparse`) for SFT and DPO checkpoints - Completed on 2026-06-23
+- `[x]` Refactor `rag_setup.py` to support relative database paths and unify the `chroma_db` path with the dashboard - Completed on 2026-06-23
+- `[x]` Update system prompts in `test_tripme_ai.py` and `video_pipeline.py` to instruct model to think and reason for best output - Completed on 2026-06-23
+- `[x]` Create sample evaluation benchmark datasets in `eval_data/` folder - Completed on 2026-06-23
+- `[x]` Add CSV dataset format auto-detection support to SFT and DPO training scripts - Completed on 2026-06-23
+- `[x]` Initial repository analysis and bug search - 2026-06-23
+- `[x]` SFT adapter loading bug in `align.py` fixed - 2026-06-23
+- `[x]` Multimodal Projector bypass for video inputs in `lumen_model.py` fixed - 2026-06-23
+- `[x]` Context loss in `SpeculativeDecoder._draft_tokens` in `lumen/inference/speculative.py` fixed - 2026-06-23
+- `[x]` Math error in speculative decoding resampling in `lumen/inference/speculative.py` fixed - 2026-06-23
+- `[x]` Autoregressive generation speed optimization in `LumenForCausalLM.generate` in `lumen_model.py` fixed - 2026-06-23
+- `[x]` Multimodal sequence padding bug in `LumenTokenizer` and `video_pipeline.py` fixed - 2026-06-23
+- `[x]` Dataset text field loading dynamic support in `configs/sft.yaml` and `train_mistral_fast.py` - 2026-06-23
+- `[x]` Created DPO chosen/rejected dataset compiler script (`generate_dpo_data.py`) with geographic safety alignment - 2026-06-23
+- `[x]` Integrated 6 conversation modes (autocomplete, switcher, quick-prompts, preview, shortcuts) into UI and backend - 2026-06-23
+
+

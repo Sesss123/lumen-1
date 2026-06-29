@@ -1,0 +1,5 @@
+mode: safety
+learning_rate: 5.0e-7
+batch_size: 4
+max_steps: 5000
+dropout: 0.05

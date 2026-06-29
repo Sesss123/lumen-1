@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumen-1 AI Modes Sandbox Playground</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-color: #0b0d19;
+            --card-bg: rgba(20, 24, 46, 0.45);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --purple: #8b5cf6;
+            --blue: #3b82f6;
+            --teal: #14b8a6;
+            --gold: #f59e0b;
+            --danger: #ef4444;
+            
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.15) 0px, transparent 50%);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+        }
+
+        header {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, #a3a6b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .badge {
+            background: rgba(139, 92, 246, 0.12);
+            color: var(--purple);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-grey { background: rgba(163, 166, 184, 0.12); color: #a3a6b8; border-color: rgba(163, 166, 184, 0.2); }
+        .badge-blue { background: rgba(59, 130, 246, 0.12); color: var(--blue); border-color: rgba(59, 130, 246, 0.2); }
+        .badge-teal { background: rgba(20, 184, 166, 0.12); color: var(--teal); border-color: rgba(20, 184, 166, 0.2); }
+        .badge-gold { background: rgba(245, 158, 11, 0.12); color: var(--gold); border-color: rgba(245, 158, 11, 0.2); }
+        .badge-purple { background: rgba(139, 92, 246, 0.12); color: var(--purple); border-color: rgba(139, 92, 246, 0.2); }
+        .badge-red { background: rgba(239, 68, 68, 0.12); color: var(--danger); border-color: rgba(239, 68, 68, 0.2); }
+
+        .playground-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 24px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Mode Switcher Bar */
+        .mode-switcher-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .mode-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px 18px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            white-space: nowrap;
+        }
+
+        .mode-btn i {
+            width: 16px;
+            height: 16px;
+        }
+
+        .mode-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .mode-btn.active {
+            color: white !important;
+        }
+
+        .mode-btn-default.active {
+            background: rgba(163, 166, 184, 0.15);
+            border-color: rgba(163, 166, 184, 0.4);
+            box-shadow: 0 0 15px rgba(163, 166, 184, 0.2);
+        }
+
+        .mode-btn-analyst.active {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+        }
+
+        .mode-btn-optimizer.active {
+            background: rgba(20, 184, 166, 0.15);
+            border-color: rgba(20, 184, 166, 0.4);
+            box-shadow: 0 0 15px rgba(20, 184, 166, 0.2);
+        }
+
+        .mode-btn-refactor.active {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .mode-btn-database.active {
+            background: rgba(139, 92, 246, 0.15);
+            border-color: rgba(139, 92, 246, 0.4);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
+        }
+
+        .mode-btn-security.active {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.4);
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+        }
+
+        /* Playground Layout */
+        .playground-layout {
+            display: grid;
+            grid-template-columns: 1fr 1.3fr 1.5fr;
+            gap: 24px;
+            flex-grow: 1;
+        }
+
+        @media (max-width: 1024px) {
+            .playground-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .playground-sidebar {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        textarea.preview-textarea {
+            width: 100%;
+            height: 110px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 11.5px;
+            color: #a3a6b8;
+            resize: none;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+            line-height: 1.4;
+        }
+
+        .quick-prompts-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .quick-prompt-btn {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 12.5px;
+            font-weight: 500;
+            text-align: left;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .quick-prompt-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-1.5px);
+        }
+
+        /* Playground Input */
+        .playground-input {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .textarea-relative-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        #playground-prompt {
+            width: 100%;
+            flex-grow: 1;
+            min-height: 180px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+            outline: none;
+            resize: none;
+            font-size: 15px;
+            transition: var(--transition-smooth);
+        }
+
+        #playground-prompt:focus {
+            border-color: var(--purple);
+            background: rgba(255, 255, 255, 0.04);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.15);
+        }
+
+        /* Autocomplete Dropdown */
+        .slash-dropdown {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            width: 100%;
+            background: rgba(16, 20, 31, 0.95);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 100;
+            max-height: 220px;
+            overflow-y: auto;
+            margin-bottom: 6px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .slash-dropdown-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-secondary);
+            transition: var(--transition-smooth);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        .slash-dropdown-item:hover, .slash-dropdown-item.focused {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .slash-dropdown-command {
+            font-weight: 700;
+            color: white;
+        }
+
+        .slash-dropdown-purpose {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .slash-dropdown-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .tag-default { background: rgba(163, 166, 184, 0.3); border: 1px solid rgba(163, 166, 184, 0.5); }
+        .tag-analyst { background: rgba(59, 130, 246, 0.3); border: 1px solid rgba(59, 130, 246, 0.5); }
+        .tag-optimizer { background: rgba(20, 184, 166, 0.3); border: 1px solid rgba(20, 184, 166, 0.5); }
+        .tag-refactor { background: rgba(245, 158, 11, 0.3); border: 1px solid rgba(245, 158, 11, 0.5); }
+        .tag-database { background: rgba(139, 92, 246, 0.3); border: 1px solid rgba(139, 92, 246, 0.5); }
+        .tag-security { background: rgba(239, 68, 68, 0.3); border: 1px solid rgba(239, 68, 68, 0.5); }
+
+        .btn {
+            background: linear-gradient(135deg, var(--purple) 0%, rgba(139, 92, 246, 0.6) 100%);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14.5px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: var(--transition-smooth);
+            width: 100%;
+        }
+
+        .btn:hover {
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+            transform: translateY(-1.5px);
+        }
+
+        /* Playground Output Console */
+        .playground-output {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .output-console {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            flex-grow: 1;
+            height: 100%;
+            overflow-y: auto;
+            max-height: 480px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .chat-bubble {
+            max-width: 85%;
+            padding: 14px 18px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.5;
+            position: relative;
+            animation: bubbleFade 0.3s ease-out;
+        }
+
+        @keyframes bubbleFade {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-bubble-user {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-bubble-assistant {
+            background: rgba(139, 92, 246, 0.08);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-bubble-mode-tag {
+            display: inline-block;
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            color: white;
+        }
+
+        .chat-bubble-meta {
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            text-align: right;
+        }
+
+        .empty-state {
+            text-align: center;
+            margin: auto;
+            color: var(--text-secondary);
+            padding: 40px;
+        }
+
+        .empty-state i {
+            width: 48px;
+            height: 48px;
+            opacity: 0.5;
+            margin-bottom: 12px;
+            stroke-width: 1.5;
+            display: inline-block;
+        }
+
+        .empty-state p {
+            font-size: 13px;
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-top: 2px solid var(--purple);
+            border-radius: 50%;
+            animation: spin 1s infinite linear;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>Lumen-1 AI Modes Sandbox</h1>
+            <p style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">Standalone Playground & Autocomplete Live Demo</p>
+        </div>
+        <div id="playground-mode-header-badge">
+            <span class="badge badge-grey" id="current-mode-badge">Mode: Default</span>
+        </div>
+    </header>
+
+    <main class="playground-card">
+        <!-- Mode Switcher Bar -->
+        <div class="mode-switcher-bar">
+            <button type="button" class="mode-btn mode-btn-default active" data-mode="default" title="Default Mode">
+                <i data-lucide="compass"></i> <span>Default</span>
+            </button>
+            <button type="button" class="mode-btn mode-btn-analyst" data-mode="analyst" title="Analyst Mode">
+                <i data-lucide="bar-chart-2"></i> <span>Analyst</span>
+            </button>
+            <button type="button" class="mode-btn mode-btn-optimizer" data-mode="optimizer" title="Optimizer Mode">
+                <i data-lucide="sliders"></i> <span>Optimizer</span>
+            </button>
+            <button type="button" class="mode-btn mode-btn-refactor" data-mode="refactor" title="Refactor Mode">
+                <i data-lucide="code-2"></i> <span>Refactor</span>
+            </button>
+            <button type="button" class="mode-btn mode-btn-database" data-mode="database" title="Database Mode">
+                <i data-lucide="database"></i> <span>Database</span>
+            </button>
+            <button type="button" class="mode-btn mode-btn-security" data-mode="security" title="Security Mode">
+                <i data-lucide="shield-alert"></i> <span>Security</span>
+            </button>
+        </div>
+
+        <div class="playground-layout">
+            <!-- Config Sidebar -->
+            <div class="playground-sidebar">
+                <div>
+                    <label>System Prompt Preview</label>
+                    <textarea id="playground-system-prompt-preview" class="preview-textarea" readonly></textarea>
+                </div>
+                <div>
+                    <label>Quick Prompts</label>
+                    <div class="quick-prompts-grid" id="playground-quick-prompts">
+                        <!-- Dynamically populated per mode -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Inputs -->
+            <div class="playground-input">
+                <label for="playground-prompt">Enter Prompt (Try typing '/' for dropdown):</label>
+                <div class="textarea-relative-wrapper">
+                    <textarea id="playground-prompt" placeholder="Ask Lumen-1 something, or type '/' for slash commands..."></textarea>
+                    
+                    <!-- Autocomplete Dropdown -->
+                    <div id="slash-autocomplete-dropdown" class="slash-dropdown hidden">
+                        <!-- Dynamic items -->
+                    </div>
+                </div>
+                
+                <button id="btn-run-inference" class="btn">
+                    <i data-lucide="send"></i>
+                    <span>Send to Model</span>
+                </button>
+            </div>
+
+            <!-- Output Chat thread -->
+            <div class="playground-output">
+                <label>Model Response:</label>
+                <div class="output-console" id="playground-response">
+                    <div class="empty-state" id="playground-empty-state">
+                        <i data-lucide="message-square"></i>
+                        <p>Output from the fine-tuned model will render here once inference runs.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+
+            const playgroundPrompt = document.getElementById('playground-prompt');
+            const btnRunInference = document.getElementById('btn-run-inference');
+            const playgroundResponse = document.getElementById('playground-response');
+            const currentModeBadge = document.getElementById('current-mode-badge');
+            const systemPromptPreview = document.getElementById('playground-system-prompt-preview');
+            const quickPromptsContainer = document.getElementById('playground-quick-prompts');
+            const modeButtons = document.querySelectorAll('.mode-btn');
+            const slashDropdown = document.getElementById('slash-autocomplete-dropdown');
+
+            let activeMode = 'default';
+
+            const MODE_PROMPTS = {
+                default: "You are Lumen-1, an advanced AI travel assistant for Sri Lanka. When answering questions, think deeply and structure your reasoning step-by-step to provide the best, most accurate, and safest output.",
+                analyst: "You are the Analyst mode of Lumen-1. Your purpose is to analyze training loss, evaluate data quality, and parse performance metrics. Think step-by-step and provide detailed analytical reports.",
+                optimizer: "You are the Optimizer mode of Lumen-1. Your purpose is to recommend hyperparameters like LoRA rank, learning rate, batch size, and optimization techniques. Explain the trade-offs of your recommendations.",
+                refactor: "You are the Refactor mode of Lumen-1. Your purpose is to review Python code, identify bugs, and suggest robust refactoring solutions. Provide clean code snippets.",
+                database: "You are the Database mode of Lumen-1. Your purpose is to query the TripMe JSON database, search and filter records, and write query scripts. Focus on exact matches and JSON validation.",
+                security: "You are the Security mode of Lumen-1. Your purpose is to detect prompt injections, monitor safety violations, and classify safety risks. Provide clear safety status reports."
+            };
+
+            const MODE_QUICK_PROMPTS = {
+                default: [
+                    { label: "⛺ Camping spots", prompt: "⛺ කඳවුරු බැඳීමට (Camping) ශ්‍රී ලංකාවේ සුදුසුම ස්ථාන මොනවාද?" },
+                    { label: "🌊 Quiet beaches", prompt: "🌊 ශ්‍රී ලංකාවේ සංචාරකයන් අඩු, නිස්කලංක සහ ආරක්ෂිත වෙරළ තීරයන් මොනවාද?" },
+                    { label: "🏞️ Safe waterfalls", prompt: "🏞️ නෑමට සහ විනෝද වීමට ආරක්ෂිත, දියකඩවල් ලඟ ඇති දියඇලි මොනවාද?" },
+                    { label: "⛰️ Hiking routes", prompt: "⛰️ ශ්‍රී ලංකාවේ සුන්දරම දර්ශන නැරඹිය හැකි කඳු තරණය කිරීමේ (Hiking) මාර්ග මොනවාද?" }
+                ],
+                analyst: [
+                    { label: "📊 Analyze Loss Curves", prompt: "How should I analyze a training loss curve that oscillates heavily or stays flat?" },
+                    { label: "📈 SFT Data Quality Check", prompt: "What are the key metrics to evaluate SFT conversational dataset quality?" },
+                    { label: "📉 Detect Overfitting", prompt: "Explain step-by-step how to identify and prevent overfitting in QLoRA fine-tuning." }
+                ],
+                optimizer: [
+                    { label: "⚙️ LoRA Rank/Alpha", prompt: "What are the recommended values for LoRA rank (r) and alpha when fine-tuning a 7B model?" },
+                    { label: "🚀 LR Recommendations", prompt: "Provide a learning rate and scheduler recommendation for SFT vs DPO training steps." },
+                    { label: "📦 Batch Size Scaling", prompt: "How does batch size and gradient accumulation steps affect model convergence?" }
+                ],
+                refactor: [
+                    { label: "🛠️ Fix Context Loss", prompt: "Review my Python code for context loss and state handling in custom decoder loops." },
+                    { label: "🧩 Optimize Tokenizer", prompt: "Show me a robust regex-based python script to pad multimodal tag placeholders." },
+                    { label: "🐞 Debug Multimodal Forward", prompt: "How do I fix a dimension mismatch during video frame encoding projection?" }
+                ],
+                database: [
+                    { label: "🔍 Search Nuwara Wewa", prompt: "Write a JSON query or Python script to retrieve 'Nuwara Wewa' details from augmented DB." },
+                    { label: "📁 Verify Schema", prompt: "Explain the standard JSON fields required for indexing Sri Lankan locations in ChromaDB." },
+                    { label: "🧮 Count Category Stats", prompt: "Write an API endpoint to count and return location counts grouped by travel category." }
+                ],
+                security: [
+                    { label: "🛡️ Prompt Injection", prompt: "Analyze this system prompt structure to prevent system instructions jailbreak attacks." },
+                    { label: "🚫 Toxicity Filtering", prompt: "What parameters should I set in safety.yaml to block unsafe, toxic travel recommendations?" },
+                    { label: "🔒 Safety Pipeline", prompt: "Explain how to hook a pre-inference and post-inference validation stack to FastAPI." }
+                ]
+            };
+
+            const SLASH_COMMANDS = [
+                { cmd: "/default", mode: "default", purpose: "Sri Lanka travel assistant", color: "grey" },
+                { cmd: "/analyst", mode: "analyst", purpose: "Training loss, data quality analysis", color: "blue" },
+                { cmd: "/optimizer", mode: "optimizer", purpose: "LoRA/LR/batch size recommendations", color: "teal" },
+                { cmd: "/refactor", mode: "refactor", purpose: "Python code review & bug fixes", color: "gold" },
+                { cmd: "/database", mode: "database", purpose: "TripMe JSON database queries", color: "purple" },
+                { cmd: "/security", mode: "security", purpose: "Prompt injection & safety detection", color: "red" }
+            ];
+
+            const MOCK_RESPONSES = {
+                default: "නුවර වැව (Nuwara Wewa) පිහිටා තිබෙන්නේ අනුරාධපුර ඓතිහාසික නගරයේය. මෙය වළගම්බා රජු දවස (ක්‍රි.පූ. 1 වන සියවසේදී) කරවන ලද වැවකි. එහි නමට 'නුවර' යන වචනය තිබුණද, එය මහනුවර හෝ නුවරඑළිය දිස්ත්‍රික්කවලට අයත් නොවේ.",
+                analyst: "=== ANALYST MODE REPORT ===\n1. Training Loss is converging smoothly. Step 100 loss: 1.12. Validation loss: 1.25.\n2. SFT Dataset quality contains 8,420 parsed entries. 98.4% data completeness verified.",
+                optimizer: "=== OPTIMIZER PARAMETER PROPOSAL ===\n* LoRA Rank (r) set to 16, Alpha set to 32 is optimal for Mistral-7B.\n* Learning Rate is proposed at 2e-4 for SFT and 5e-6 for DPO.",
+                refactor: "=== REFACTOR PROPOSAL ===\n```python\n# Popping pixel_values after first iteration prevents encoder re-runs in decoder loops\nif step == 0:\n    kwargs.pop('pixel_values', None)\n    kwargs.pop('mel_spectrograms', None)\n```",
+                database: "=== DATABASE QUERY RESULTS ===\n* Nuwara Wewa entry exists in 'tripme_database_augmented.json'\n* Coordinates: lat 8.3435, lng 80.4208.\n* Category: Lakes and Reservoirs, District: Anuradhapura.",
+                security: "=== SECURITY SCREENING COMPLETE ===\n* Prompt injection risk: 0.00% (Pre-inference jailbreak stack active).\n* Toxicity filter passed successfully (Status: Safe)."
+            };
+
+            function setPlaygroundMode(mode) {
+                activeMode = mode;
+                
+                modeButtons.forEach(btn => {
+                    if (btn.getAttribute('data-mode') === mode) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+
+                if (currentModeBadge) {
+                    currentModeBadge.innerText = `Mode: ${mode.charAt(0).toUpperCase() + mode.slice(1)}`;
+                    currentModeBadge.className = 'badge';
+                    const badgeColors = {
+                        default: 'badge-grey',
+                        analyst: 'badge-blue',
+                        optimizer: 'badge-teal',
+                        refactor: 'badge-gold',
+                        database: 'badge-purple',
+                        security: 'badge-red'
+                    };
+                    currentModeBadge.classList.add(badgeColors[mode] || 'badge-purple');
+                }
+
+                if (systemPromptPreview) {
+                    systemPromptPreview.value = MODE_PROMPTS[mode] || '';
+                }
+
+                if (quickPromptsContainer) {
+                    quickPromptsContainer.innerHTML = '';
+                    const prompts = MODE_QUICK_PROMPTS[mode] || [];
+                    prompts.forEach(p => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'quick-prompt-btn';
+                        btn.innerText = p.label;
+                        btn.addEventListener('click', () => {
+                            playgroundPrompt.value = p.prompt;
+                            playgroundPrompt.focus();
+                        });
+                        quickPromptsContainer.appendChild(btn);
+                    });
+                }
+            }
+
+            modeButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setPlaygroundMode(btn.getAttribute('data-mode'));
+                });
+            });
+
+            // Autocomplete slash commands logic
+            let autocompleteVisible = false;
+            let filteredCommands = [];
+            let focusedIndex = -1;
+
+            playgroundPrompt.addEventListener('input', (e) => {
+                const val = e.target.value;
+                const caretPos = e.target.selectionStart;
+                const textUpToCaret = val.substring(0, caretPos);
+                const words = textUpToCaret.split(/\s+/);
+                const lastWord = words[words.length - 1];
+
+                if (lastWord.startsWith('/')) {
+                    const query = lastWord.toLowerCase();
+                    filteredCommands = SLASH_COMMANDS.filter(cmd => cmd.cmd.startsWith(query));
+                    if (filteredCommands.length > 0) {
+                        showAutocompleteDropdown(filteredCommands);
+                    } else {
+                        hideAutocompleteDropdown();
+                    }
+                } else {
+                    hideAutocompleteDropdown();
+                }
+            });
+
+            playgroundPrompt.addEventListener('keydown', (e) => {
+                if (autocompleteVisible) {
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        focusedIndex = (focusedIndex + 1) % filteredCommands.length;
+                        highlightDropdownItem(focusedIndex);
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        focusedIndex = (focusedIndex - 1 + filteredCommands.length) % filteredCommands.length;
+                        highlightDropdownItem(focusedIndex);
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (focusedIndex >= 0 && focusedIndex < filteredCommands.length) {
+                            selectAutocompleteItem(filteredCommands[focusedIndex]);
+                        }
+                    } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        hideAutocompleteDropdown();
+                    }
+                } else {
+                    if (e.key === 'Enter' && e.ctrlKey) {
+                        e.preventDefault();
+                        btnRunInference.click();
+                    }
+                }
+            });
+
+            function showAutocompleteDropdown(commands) {
+                slashDropdown.innerHTML = '';
+                focusedIndex = 0;
+                autocompleteVisible = true;
+                slashDropdown.classList.remove('hidden');
+
+                commands.forEach((cmd, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'slash-dropdown-item';
+                    if (idx === 0) item.classList.add('focused');
+                    item.innerHTML = `
+                        <div>
+                            <span class="slash-dropdown-command">${cmd.cmd}</span>
+                            <span style="margin: 0 8px; opacity: 0.3;">|</span>
+                            <span class="slash-dropdown-purpose">${cmd.purpose}</span>
+                        </div>
+                        <span class="slash-dropdown-badge tag-${cmd.color}">${cmd.mode.toUpperCase()}</span>
+                    `;
+                    item.addEventListener('click', () => selectAutocompleteItem(cmd));
+                    slashDropdown.appendChild(item);
+                });
+            }
+
+            function hideAutocompleteDropdown() {
+                slashDropdown.classList.add('hidden');
+                autocompleteVisible = false;
+                focusedIndex = -1;
+                filteredCommands = [];
+            }
+
+            function highlightDropdownItem(index) {
+                const items = slashDropdown.querySelectorAll('.slash-dropdown-item');
+                items.forEach((item, idx) => {
+                    if (idx === index) {
+                        item.classList.add('focused');
+                        item.scrollIntoView({ block: 'nearest' });
+                    } else {
+                        item.classList.remove('focused');
+                    }
+                });
+            }
+
+            function selectAutocompleteItem(cmd) {
+                const val = playgroundPrompt.value;
+                const caretPos = playgroundPrompt.selectionStart;
+                const textBeforeCaret = val.substring(0, caretPos);
+                const textAfterCaret = val.substring(caretPos);
+                
+                const lastSlashIdx = textBeforeCaret.lastIndexOf('/');
+                const newTextBeforeCaret = textBeforeCaret.substring(0, lastSlashIdx) + cmd.cmd + " ";
+                
+                playgroundPrompt.value = newTextBeforeCaret + textAfterCaret;
+                playgroundPrompt.selectionStart = playgroundPrompt.selectionEnd = newTextBeforeCaret.length;
+                playgroundPrompt.focus();
+
+                setPlaygroundMode(cmd.mode);
+                hideAutocompleteDropdown();
+            }
+
+            // Append chat bubbles
+            function appendBubble(sender, text) {
+                const empty = document.getElementById('playground-empty-state');
+                if (empty) empty.remove();
+
+                const bubble = document.createElement('div');
+                bubble.className = `chat-bubble chat-bubble-${sender}`;
+                
+                if (sender === 'assistant') {
+                    const tag = document.createElement('div');
+                    tag.className = `chat-bubble-mode-tag tag-${activeMode}`;
+                    tag.innerText = `${activeMode.toUpperCase()} MODE`;
+                    bubble.appendChild(tag);
+                }
+
+                const msgDiv = document.createElement('div');
+                msgDiv.style.whiteSpace = 'pre-wrap';
+                msgDiv.textContent = text;
+                bubble.appendChild(msgDiv);
+
+                const meta = document.createElement('div');
+                meta.className = 'chat-bubble-meta';
+                meta.innerText = `${sender === 'user' ? 'You' : 'Lumen-1'} • ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                bubble.appendChild(meta);
+
+                playgroundResponse.appendChild(bubble);
+                playgroundResponse.scrollTop = playgroundResponse.scrollHeight;
+            }
+
+            // Inference Trigger
+            btnRunInference.addEventListener('click', async () => {
+                const prompt = playgroundPrompt.value.trim();
+                if (!prompt) return;
+
+                appendBubble('user', prompt);
+                playgroundPrompt.value = '';
+
+                // Loader
+                const loader = appendBubble('assistant', '...');
+                const lastBubble = playgroundResponse.lastChild;
+                lastBubble.querySelector('div:not(.chat-bubble-mode-tag)').innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 8px; font-style: italic; color: var(--text-secondary);">
+                        <div class="spinner"></div>
+                        <span>Lumen-1 is thinking...</span>
+                    </div>
+                `;
+
+                // Try to reach live backend, fallback to mock simulator offline
+                try {
+                    const res = await fetch('/api/test-model', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ prompt, use_rag: true, mode: activeMode })
+                    });
+                    const data = await res.json();
+                    
+                    if (res.status === 200 && data.status === 'success') {
+                        lastBubble.querySelector('div:not(.chat-bubble-mode-tag)').textContent = data.response;
+                    } else {
+                        throw new Error("Live endpoint failure");
+                    }
+                } catch (e) {
+                    // Fallback simulation
+                    setTimeout(() => {
+                        let responseText = MOCK_RESPONSES[activeMode] || "Lumen-1 answered in default mode.";
+                        if (prompt.toLowerCase().includes("nuwara wewa")) {
+                            responseText = MOCK_RESPONSES.default;
+                        }
+                        lastBubble.querySelector('div:not(.chat-bubble-mode-tag)').textContent = responseText;
+                    }, 1200);
+                }
+            });
+
+            // Initialize Mode Defaults
+            setPlaygroundMode('default');
+        });
+    </script>
+</body>
+</html>

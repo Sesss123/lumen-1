@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumen-1 AI Trainer Control Panel</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- CSS Stylesheet -->
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- Leaflet.js Map CDNs -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Chart.js and Lucide Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <!-- Background glow elements -->
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+    <div class="bg-glow bg-glow-3"></div>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon"></div>
+                <div class="brand-text">
+                    <h1>LUMEN-1</h1>
+                    <span>AI Model Pipeline</span>
+                </div>
+                <button type="button" id="btn-toggle-sidebar" class="btn-icon" style="background: none; border: none; cursor: pointer; color: var(--text-secondary); margin-left: auto; display: flex; align-items: center; justify-content: center; outline: none;" title="Toggle Sidebar">
+                    <i data-lucide="chevron-left" id="sidebar-toggle-icon" style="width: 18px; height: 18px;"></i>
+                </button>
+            </div>
+
+            <nav class="nav-menu">
+                <button class="nav-btn active" data-tab="overview">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Overview</span>
+                </button>
+                <button class="nav-btn" data-tab="training">
+                    <i data-lucide="cpu"></i>
+                    <span>Training</span>
+                </button>
+                <button class="nav-btn" data-tab="inference">
+                    <i data-lucide="terminal"></i>
+                    <span>Inference</span>
+                </button>
+                <button class="nav-btn" data-tab="data">
+                    <i data-lucide="database"></i>
+                    <span>Data</span>
+                </button>
+                <button class="nav-btn" data-tab="security">
+                    <i data-lucide="shield"></i>
+                    <span>Security</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer" style="padding-top: 15px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 10px;">
+                <div class="status-indicator" style="padding: 0 10px;">
+                    <span class="status-dot status-idle" id="global-status-dot"></span>
+                    <span class="status-text" id="global-status-text" style="font-size: 13.5px; font-weight: 700;">Status: Checking...</span>
+                </div>
+                
+                <!-- Compact System Health Sidebar Widget -->
+                <div class="sidebar-health-widget" style="padding: 8px 10px; background: rgba(0,0,0,0.15); border-radius: 8px; border: 1px solid rgba(255,255,255,0.03); display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary);">
+                        <span>CPU Status:</span>
+                        <span id="sys-cpu-val" style="font-weight: 600; color: white;">0%</span>
+                    </div>
+                    <div class="progress-bar-bg" style="height: 4px; background: rgba(255,255,255,0.05);">
+                        <div class="progress-bar-fill" id="sys-cpu-bar" style="width: 0%; background: var(--blue); box-shadow: none;"></div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary);">
+                        <span>RAM Status:</span>
+                        <span id="sys-ram-val-short" style="font-weight: 600; color: white;">0%</span>
+                    </div>
+                    <div class="progress-bar-bg" style="height: 4px; background: rgba(255,255,255,0.05);">
+                        <div class="progress-bar-fill" id="sys-ram-bar" style="width: 0%; background: var(--teal); box-shadow: none;"></div>
+                    </div>
+                    
+                    <!-- Hidden elements to maintain backwards JS compatibility -->
+                    <span id="sys-ram-val" class="hidden"></span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Header bar -->
+            <header class="header">
+                <div class="header-info" style="display: flex; align-items: center; gap: 15px;">
+                    <div>
+                        <h2 id="current-tab-title">Overview</h2>
+                        <p id="current-tab-subtitle">Real-time model training metrics and diagnostics</p>
+                    </div>
+                    <span id="demo-mode-badge" class="badge badge-red hidden" style="align-self: center; font-weight: 800; font-size: 11px; box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);">Demo Mode</span>
+                </div>
+            </header>
+
+            <!-- Dashboard Tabs -->
+            <div class="workspace-area">
+                
+                <!-- Section 1: Overview Tab -->
+                <section class="tab-pane active" id="tab-overview">
+                    <!-- Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon stat-icon-purple">
+                                <i data-lucide="activity"></i>
+                            </div>
+                            <div class="stat-data">
+                                <h3>Training Loss</h3>
+                                <p class="stat-value text-glowing-purple" id="val-loss">N/A</p>
+                                <span class="stat-desc">Latest step value</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon stat-icon-blue">
+                                <i data-lucide="trending-up"></i>
+                            </div>
+                            <div class="stat-data">
+                                <h3>Learning Rate</h3>
+                                <p class="stat-value text-glowing-blue" id="val-lr">N/A</p>
+                                <span class="stat-desc">Optimizer step size</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon stat-icon-teal">
+                                <i data-lucide="refresh-cw"></i>
+                            </div>
+                            <div class="stat-data">
+                                <h3>Epoch Progress</h3>
+                                <p class="stat-value text-glowing-teal" id="val-epoch">N/A</p>
+                                <span class="stat-desc">Out of total epochs</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon stat-icon-gold">
+                                <i data-lucide="layers"></i>
+                            </div>
+                            <div class="stat-data">
+                                <h3>Global Steps</h3>
+                                <p class="stat-value text-glowing-gold" id="val-step">N/A</p>
+                                <span class="stat-desc">Completed batches</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="progress-container glass-card">
+                        <div class="progress-header">
+                            <span>Training Pipeline Completion</span>
+                            <span id="progress-percentage">0%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="progress-bar"></div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Area -->
+                    <div class="grid-2-col" style="margin-bottom: 20px;">
+                        <div class="chart-container glass-card">
+                            <div class="card-header">
+                                <h3>Live Training Convergence</h3>
+                                <span class="badge" id="chart-type-badge">No active log</span>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="lossChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-container glass-card">
+                            <div class="card-header">
+                                <h3>Database Category Distribution</h3>
+                                <span class="badge badge-purple" id="overview-db-total-badge">0 Spots</span>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="dbCategoryChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pipeline Control Actions Card -->
+                    <div class="glass-card" style="margin-top: 20px; display: flex; flex-direction: column; gap: 15px;">
+                        <h3 style="font-size: 16px; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">Pipeline Control Actions</h3>
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                            <button id="btn-mock-metrics" class="btn" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">
+                                <i data-lucide="sparkles"></i>
+                                <span>Simulate Training Step</span>
+                            </button>
+                            <button id="btn-export-telemetry" class="btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
+                                <i data-lucide="download"></i>
+                                <span>Export Telemetry logs</span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 2: Training Tab -->
+                <section class="tab-pane" id="tab-training">
+                    <div class="sub-tab-bar">
+                        <button class="sub-tab-btn active" data-sub-tab="training-sft">SFT Tuning</button>
+                        <button class="sub-tab-btn" data-sub-tab="training-dpo">DPO Alignment</button>
+                        <button class="sub-tab-btn" data-sub-tab="training-exporter">Model Exporter</button>
+                        <button class="sub-tab-btn" data-sub-tab="training-evaluation">Evaluation Scorer</button>
+                    </div>
+
+                    <!-- Sub-tab SFT Tuning -->
+                    <div class="sub-tab-content active" id="sub-tab-training-sft">
+                        <div class="grid-2-col" style="margin-bottom: 20px;">
+                            <div class="glass-card">
+                                <div class="card-header" style="margin-bottom: 15px;">
+                                    <h3>SFT Fine-Tuning Parameters</h3>
+                                </div>
+                                <div id="sft-config-validator-banner" class="hidden glass-card" style="margin-bottom: 20px; padding: 15px; background: rgba(239, 68, 68, 0.08); border: 1.5px solid rgba(239, 68, 68, 0.35); border-radius: 12px; display: flex; flex-direction: column; gap: 6px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #ef4444;">
+                                        <i data-lucide="alert-triangle" style="width: 16px; height: 16px;"></i>
+                                        <span>SFT Configuration Warnings</span>
+                                    </div>
+                                    <div id="sft-config-validator-messages" style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;"></div>
+                                </div>
+                                <form id="sft-config-form">
+                                    <div class="grid-2-col" id="sft-config-fields"></div>
+                                    <div class="form-actions" style="margin-top: 15px;">
+                                        <button type="button" id="btn-save-sft-config" class="btn btn-primary">
+                                            <i data-lucide="save"></i>
+                                            <span>Save SFT Config</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 20px;">
+                                <div class="glass-card">
+                                    <div class="card-header" style="margin-bottom: 12px;">
+                                        <h3>Fine-Tuning Control Area</h3>
+                                    </div>
+                                    <p style="color: var(--text-secondary); font-size: 13.5px; margin-bottom: 15px; line-height: 1.5;">
+                                        Start SFT stage to train adapter weights on compiled travel locations.
+                                    </p>
+                                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                        <button id="btn-start-sft" class="btn btn-primary btn-glow">
+                                            <i data-lucide="play"></i>
+                                            <span>Start SFT Stage</span>
+                                        </button>
+                                        <button class="btn btn-danger btn-stop-training" disabled>
+                                            <i data-lucide="square"></i>
+                                            <span>Stop SFT Run</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="glass-card">
+                                    <div class="card-header" style="margin-bottom: 12px;">
+                                        <h3>GPU Hardware Diagnostics</h3>
+                                    </div>
+                                    <div class="gpu-list" id="gpu-container">
+                                        <div class="empty-state">
+                                            <i data-lucide="alert-circle"></i>
+                                            <p>No GPUs identified. Verify CUDA support status.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- shared console is placed inside the active training pane -->
+                        <div class="glass-card" style="padding: 20px;">
+                            <div class="console-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                                <div class="console-title" style="display:flex; align-items:center; gap:8px; font-weight:700;">
+                                    <i data-lucide="terminal"></i>
+                                    <span>Training Console Logs Output</span>
+                                </div>
+                                <div class="console-actions" style="display:flex; gap:10px;">
+                                    <button id="btn-clear-console" class="btn-icon" style="background:none; border:none; cursor:pointer;" title="Clear console outputs"><i data-lucide="trash-2" style="width: 16px; height: 16px; color: var(--text-secondary);"></i></button>
+                                    <button id="btn-toggle-autoscroll" class="active btn-icon" style="background:none; border:none; cursor:pointer;" title="Toggle autoscroll"><i data-lucide="arrow-down" style="width: 16px; height: 16px; color: var(--purple);"></i></button>
+                                </div>
+                            </div>
+                            <div class="output-console" id="console-output" style="min-height: 250px; max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.3); font-family: var(--font-mono); font-size: 12.5px; line-height: 1.5; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); color: #c4c8d4;">
+                                Output logs will start streaming here when training runs...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-tab DPO Alignment -->
+                    <div class="sub-tab-content" id="sub-tab-training-dpo">
+                        <div class="grid-2-col" style="margin-bottom: 20px;">
+                            <div class="glass-card">
+                                <div class="card-header" style="margin-bottom: 15px;">
+                                    <h3>DPO Alignment Parameters</h3>
+                                </div>
+                                <div id="dpo-config-validator-banner" class="hidden glass-card" style="margin-bottom: 20px; padding: 15px; background: rgba(239, 68, 68, 0.08); border: 1.5px solid rgba(239, 68, 68, 0.35); border-radius: 12px; display: flex; flex-direction: column; gap: 6px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #ef4444;">
+                                        <i data-lucide="alert-triangle" style="width: 16px; height: 16px;"></i>
+                                        <span>DPO Configuration Warnings</span>
+                                    </div>
+                                    <div id="dpo-config-validator-messages" style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;"></div>
+                                </div>
+                                <form id="dpo-config-form">
+                                    <div class="grid-2-col" id="dpo-config-fields"></div>
+                                    <div class="form-actions" style="margin-top: 15px;">
+                                        <button type="button" id="btn-save-dpo-config" class="btn btn-primary">
+                                            <i data-lucide="save"></i>
+                                            <span>Save DPO Config</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 20px;">
+                                <div class="glass-card">
+                                    <div class="card-header" style="margin-bottom: 12px;">
+                                        <h3>Alignment Control Area</h3>
+                                    </div>
+                                    <p style="color: var(--text-secondary); font-size: 13.5px; margin-bottom: 15px; line-height: 1.5;">
+                                        Trigger DPO stage to align conversational outputs based on preferred options.
+                                    </p>
+                                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                        <button id="btn-start-dpo" class="btn btn-secondary btn-glow">
+                                            <i data-lucide="git-merge"></i>
+                                            <span>Start DPO Alignment</span>
+                                        </button>
+                                        <button class="btn btn-danger btn-stop-training" disabled>
+                                            <i data-lucide="square"></i>
+                                            <span>Stop DPO Run</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- DPO word length diagnostics -->
+                                <div class="glass-card" id="dpo-diagnostics-section">
+                                    <div class="card-header" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                                        <h3>Length Balancing Diagnostics</h3>
+                                        <span class="badge badge-purple" id="dpo-diagnostics-ratio-badge">1.0x Ratio</span>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                                        <div class="chart-wrapper" style="height: 110px;">
+                                            <canvas id="dpo-bias-chart"></canvas>
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12.5px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                                            <div style="display: flex; justify-content: space-between;">
+                                                <span>Total Compiled DPO Pairs:</span>
+                                                <strong id="dpo-diag-total" style="color: white;">0</strong>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between;">
+                                                <span>Average Chosen Words:</span>
+                                                <strong id="dpo-diag-chosen" style="color: #34d399;">0 words</strong>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between;">
+                                                <span>Average Rejected Words:</span>
+                                                <strong id="dpo-diag-rejected" style="color: #f87171;">0 words</strong>
+                                            </div>
+                                            <div id="dpo-verbosity-alert" class="hidden" style="margin-top: 4px; padding: 6px 10px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; color: var(--danger); font-size: 11px; display: flex; align-items: center; gap: 4px;">
+                                                <i data-lucide="alert-circle" style="width: 12px; height: 12px;"></i> Verbosity warning active!
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-tab Exporter -->
+                    <div class="sub-tab-content" id="sub-tab-training-exporter">
+                        <div class="glass-card" style="margin-bottom: 20px;">
+                            <div class="card-header" style="margin-bottom: 15px;">
+                                <h3>LoRA Weight Merging & Model Exporter</h3>
+                                <span class="badge badge-purple" id="exporter-status-badge">Exporter Idle</span>
+                            </div>
+                            
+                            <form id="exporter-form">
+                                <div class="grid-2-col" style="gap: 20px; margin-bottom: 20px;">
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label for="export-base-model">Base Model Identifier/Path</label>
+                                        <input type="text" id="export-base-model" value="mistralai/Mistral-7B-Instruct-v0.2" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; outline: none; font-size: 13px;">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label for="export-adapter">LoRA PEFT Adapter Directory</label>
+                                        <input type="text" id="export-adapter" value="../checkpoints/lumen_mistral_finetuned" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; outline: none; font-size: 13px;">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label for="export-output">Output Directory Path</label>
+                                        <input type="text" id="export-output" value="../checkpoints/lumen_mistral_merged" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; outline: none; font-size: 13px;">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label for="export-format">Export Serialization Format</label>
+                                        <select id="export-format" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; outline: none; font-size: 13px;">
+                                            <option value="safetensors" selected>Safetensors (.safetensors)</option>
+                                            <option value="gguf">GGUF 4-bit (.gguf format)</option>
+                                            <option value="awq">AWQ 4-bit Quantized (.pt format)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;">
+                                    <button type="button" id="btn-start-export" class="btn btn-primary btn-glow" style="padding: 10px 25px;"><i data-lucide="play-circle"></i><span>Merge & Export Model</span></button>
+                                    <button type="button" id="btn-stop-export" class="btn btn-danger" disabled style="padding: 10px 25px;"><i data-lucide="square"></i><span>Stop Export</span></button>
+                                </div>
+                            </form>
+
+                            <!-- Exporter Console Logs -->
+                            <div class="exporter-logs-wrapper">
+                                <div class="card-header" style="margin-bottom: 8px;">
+                                    <h3>Model Exporter Output Logs</h3>
+                                    <span class="badge" id="exporter-log-badge">Logs Ready</span>
+                                </div>
+                                <div class="output-console" id="exporter-console" style="min-height: 180px; max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.3); font-family: var(--font-mono); font-size: 12.5px; line-height: 1.5; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); color: #c4c8d4;">Console ready...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-tab Evaluation -->
+                    <div class="sub-tab-content" id="sub-tab-training-evaluation">
+                        <div class="grid-2-col" style="margin-bottom: 20px; align-items: stretch;">
+                            <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                                <div>
+                                    <div class="card-header" style="margin-bottom: 12px;">
+                                        <h3>Run Benchmark Scorer</h3>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="eval-dataset-select">Select Evaluation Dataset</label>
+                                        <select id="eval-dataset-select" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: white; outline: none; font-size: 13px;">
+                                            <option value="">Loading datasets...</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="eval-limit-input">Evaluation Limit (Record Count)</label>
+                                        <input type="number" id="eval-limit-input" min="1" max="20" value="5" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: white; outline: none; font-size: 13px;">
+                                    </div>
+                                </div>
+                                <button id="btn-run-evaluation" class="btn btn-primary btn-glow" style="width: 100%; justify-content: center; margin-top: 15px;">
+                                    <i data-lucide="play"></i>
+                                    <span>Run Evaluation Benchmark</span>
+                                </button>
+                            </div>
+
+                            <div class="glass-card">
+                                <div class="card-header" style="margin-bottom: 12px;">
+                                    <h3>Evaluation Scores Summary</h3>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 15px; justify-content: center; height: 80%;">
+                                    <div class="metric-meter-group">
+                                        <div class="meter-meta">
+                                            <span>Average BLEU-4 Score</span>
+                                            <span id="eval-avg-bleu" style="font-weight: 700; color: var(--purple);">0.0000</span>
+                                        </div>
+                                    </div>
+                                    <div class="metric-meter-group">
+                                        <div class="meter-meta">
+                                            <span>Average ROUGE-L Score</span>
+                                            <span id="eval-avg-rouge" style="font-weight: 700; color: var(--blue);">0.0000</span>
+                                        </div>
+                                    </div>
+                                    <div class="metric-meter-group">
+                                        <div class="meter-meta">
+                                            <span>Average Cosine Semantic Similarity</span>
+                                            <span id="eval-avg-similarity" style="font-weight: 700; color: var(--teal);">0.0000</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Progress indicator -->
+                        <div id="eval-progress-container" class="hidden glass-card" style="margin-bottom: 20px; padding: 15px; background: rgba(59, 130, 246, 0.05); border-color: rgba(59, 130, 246, 0.2);">
+                            <div class="progress-header" style="margin-bottom: 8px;">
+                                <span id="eval-progress-status">Evaluating model performance...</span>
+                                <span id="eval-progress-percent">0%</span>
+                            </div>
+                            <div class="progress-bar-bg" style="height: 6px;">
+                                <div class="progress-bar-fill meter-blue" id="eval-progress-bar" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Radar metrics chart and details -->
+                        <div class="grid-2-col" style="margin-bottom: 20px;">
+                            <div class="glass-card">
+                                <div class="card-header">
+                                    <h3>Evaluation Quality Profile</h3>
+                                </div>
+                                <div class="chart-wrapper" style="height: 250px;">
+                                    <canvas id="evaluation-radar-chart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="glass-card" style="display: flex; flex-direction: column;">
+                                <div class="card-header">
+                                    <h3>Evaluation Comparison Table</h3>
+                                </div>
+                                <div class="samples-table-wrapper" style="flex-grow: 1; max-height: 250px; overflow-y: auto;">
+                                    <table class="samples-table">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 30%;">Question</th>
+                                                <th style="width: 35%;">Reference Answer</th>
+                                                <th style="width: 35%;">Generated Answer</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="eval-results-table-body">
+                                            <tr>
+                                                <td colspan="3" class="text-center">No benchmark evaluations executed yet.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 3: Inference Tab -->
+                <section class="tab-pane" id="tab-inference">
+                    <div class="sub-tab-bar">
+                        <button class="sub-tab-btn active" data-sub-tab="inference-chat">Chat Sandbox</button>
+                        <button class="sub-tab-btn" data-sub-tab="inference-arena">Model Arena</button>
+                        <button class="sub-tab-btn" data-sub-tab="inference-audio">Audio Sandbox</button>
+                        <button class="sub-tab-btn" data-sub-tab="inference-multimodal">Spatial & Multimodal</button>
+                    </div>
+
+                    <!-- Sub-tab Chat Sandbox -->
+                    <div class="sub-tab-content active" id="sub-tab-inference-chat">
+                        <div class="glass-card playground-card" style="padding: 20px;">
+                            <div class="card-header" style="margin-bottom: 12px;">
+                                <h3>Prompt Sandbox (Inference Playground)</h3>
+                                <div style="display: flex; gap: 8px;">
+                                    <span class="badge badge-purple" id="current-mode-badge">Mode: Default</span>
+                                </div>
+                            </div>
+
+                            <!-- Mode Switcher Bar -->
+                            <div class="mode-switcher-bar" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                                <button type="button" class="mode-btn mode-btn-default active btn" data-mode="default" style="padding: 6px 12px; font-size: 12px;">
+                                    <i data-lucide="compass" style="width: 14px; height: 14px;"></i> <span>Default</span>
+                                </button>
+                                <button type="button" class="mode-btn mode-btn-analyst btn" data-mode="analyst" style="padding: 6px 12px; font-size: 12px;">
+                                    <i data-lucide="bar-chart-2" style="width: 14px; height: 14px;"></i> <span>Analyst</span>
+                                </button>
+                                <button type="button" class="mode-btn mode-btn-optimizer btn" data-mode="optimizer" style="padding: 6px 12px; font-size: 12px;">
+                                    <i data-lucide="sliders" style="width: 14px; height: 14px;"></i> <span>Optimizer</span>
+                                </button>
+                                <button type="button" class="mode-btn mode-btn-refactor btn" data-mode="refactor" style="padding: 6px 12px; font-size: 12px;">
+                                    <i data-lucide="code-2" style="width: 14px; height: 14px;"></i> <span>Refactor</span>
+                                </button>
+                                <button type="button" class="mode-btn mode-btn-database btn" data-mode="database" style="padding: 6px 12px; font-size: 12px;">
+                                    <i data-lucide="database" style="width: 14px; height: 14px;"></i> <span>Database</span>
+                                </button>
+                                <button type="button" class="mode-btn mode-btn-security btn" data-mode="security" style="padding: 6px 12px; font-size: 12px;">
+                                    <i data-lucide="shield-alert" style="width: 14px; height: 14px;"></i> <span>Security</span>
+                                </button>
+                                <button type="button" class="mode-btn mode-btn-agent btn" data-mode="agent" style="padding: 6px 12px; font-size: 12px;">
+                                    <i data-lucide="bot" style="width: 14px; height: 14px;"></i> <span>Agent</span>
+                                </button>
+                                <div id="custom-modes-spacer" style="display: contents;"></div>
+                                <button type="button" class="mode-btn btn-add-custom-mode btn" id="btn-add-custom-mode" style="border: 1px dashed rgba(59, 130, 246, 0.4); background: rgba(59, 130, 246, 0.05); margin-left: auto; padding: 6px 12px; font-size: 12px;">
+                                    <i data-lucide="plus" style="width: 14px; height: 14px;"></i> <span>+ Custom Mode</span>
+                                </button>
+                            </div>
+
+                            <div class="playground-layout" style="display: grid; grid-template-columns: 240px 1fr; gap: 20px;">
+                                <!-- Left Panel: System Prompt Preview & Quick Prompts -->
+                                <div class="playground-sidebar glass-card" style="padding: 15px; display: flex; flex-direction: column; gap: 15px;">
+                                    <div>
+                                        <label style="font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">System Prompt Override</label>
+                                        <textarea id="playground-system-prompt-preview" style="width: 100%; height: 110px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px; font-size: 11.5px; color: white; resize: none; outline: none; margin-top: 5px;"></textarea>
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Quick Prompts</label>
+                                        <div class="quick-prompts-grid" id="playground-quick-prompts" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;"></div>
+                                    </div>
+                                    
+                                    <!-- Speculative Decoding Widget -->
+                                    <div id="speculative-telemetry-panel" class="hidden" style="margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px;">
+                                        <label style="font-size: 11px; font-weight: 700; color: var(--purple); text-transform: uppercase; display: flex; align-items: center; gap: 4px;">
+                                            <i data-lucide="zap" style="width: 12px; height: 12px;"></i> Speculative Stats
+                                        </label>
+                                        <div style="margin-top: 6px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11px; color: var(--text-secondary);">
+                                            <div>
+                                                <span>Speedup:</span>
+                                                <p id="spec-stat-speedup" style="font-size: 13.5px; font-weight: 700; color: #10b981; margin: 2px 0 0 0;">1.00x</p>
+                                            </div>
+                                            <div>
+                                                <span>Accept Rate:</span>
+                                                <p id="spec-stat-acceptance" style="font-size: 13.5px; font-weight: 700; color: var(--purple); margin: 2px 0 0 0;">0.0%</p>
+                                            </div>
+                                            <div>
+                                                <span>Spec Speed:</span>
+                                                <p id="spec-stat-speed" style="font-size: 11.5px; font-weight: 600; color: white; margin: 2px 0 0 0;">0.0 tok/s</p>
+                                            </div>
+                                            <div>
+                                                <span>Std Speed:</span>
+                                                <p id="spec-stat-std-speed" style="font-size: 11.5px; font-weight: 600; color: white; margin: 2px 0 0 0;">0.0 tok/s</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Middle Panel: Chat Window & Input -->
+                                <div class="playground-chat-main" style="display: flex; flex-direction: column; gap: 15px;">
+                                    <div class="output-console chat-thread-container" id="playground-response" style="flex-grow: 1; min-height: 320px; max-height: 480px; overflow-y: auto; background: rgba(0,0,0,0.25); padding: 15px; border: 1px solid var(--border-color); border-radius: 12px;">
+                                        <div class="chat-bubble assistant empty-state" style="text-align: center; color: var(--text-secondary); padding: 40px 20px;">
+                                            <i data-lucide="message-square" style="width: 32px; height: 32px; margin-bottom: 10px; opacity: 0.5; display: inline-block;"></i>
+                                            <p>Welcome to Lumen-1 Chat Sandbox! Submit prompts below to evaluate model responses.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="playground-controls" style="display: flex; flex-direction: column; gap: 10px;">
+                                        <div class="textarea-relative-wrapper" style="position: relative; display: flex;">
+                                            <textarea id="playground-prompt" placeholder="Type prompt here... (Use '/' for commands)" style="width: 100%; min-height: 52px; max-height: 120px; padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: white; outline: none; resize: vertical; font-size: 13.5px; font-family: var(--font-ui);"></textarea>
+                                            
+                                            <!-- Autocomplete Slash Dropdown -->
+                                            <div id="slash-autocomplete-dropdown" class="slash-dropdown hidden" style="position: absolute; bottom: 100%; left: 0; width: 100%; background: rgba(10, 15, 30, 0.95); backdrop-filter: blur(15px); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 100; max-height: 180px; overflow-y: auto; margin-bottom: 5px;"></div>
+                                        </div>
+
+                                        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
+                                            <div style="display: flex; gap: 10px; align-items: center; margin-left: auto;">
+                                                <div style="display: flex; align-items: center; gap: 6px;">
+                                                    <input type="checkbox" id="playground-rag-toggle" checked style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--purple);">
+                                                    <label for="playground-rag-toggle" style="font-size: 11.5px; color: var(--text-secondary); cursor: pointer; user-select: none;">RAG Context</label>
+                                                </div>
+                                                <div style="display: flex; align-items: center; gap: 6px;">
+                                                    <input type="checkbox" id="playground-speculative-toggle" style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--purple);">
+                                                    <label for="playground-speculative-toggle" style="font-size: 11.5px; color: var(--text-secondary); cursor: pointer; user-select: none;">Speculative decoding</label>
+                                                </div>
+                                                <div style="display: flex; align-items: center; gap: 6px; margin-right: 10px;">
+                                                    <input type="checkbox" id="playground-tts-toggle" style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--purple);">
+                                                    <label for="playground-tts-toggle" style="font-size: 11.5px; color: var(--text-secondary); cursor: pointer; user-select: none;">Auto-TTS</label>
+                                                </div>
+                                                <button id="btn-run-inference" class="btn btn-primary" style="padding: 8px 16px; height: auto; font-size: 13px;">
+                                                    <i data-lucide="send"></i>
+                                                    <span>Send</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-tab Model Arena -->
+                    <div class="sub-tab-content" id="sub-tab-inference-arena">
+                        <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column; gap: 20px; height: 100%;">
+                            <div class="card-header">
+                                <h3>Model Arena (RLHF Human Preference Side-by-Side Evaluator)</h3>
+                                <span class="badge">Blind testing</span>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex-grow: 1;">
+                                <!-- Model A Column -->
+                                <div class="glass-card" style="display: flex; flex-direction: column; gap: 12px; background: rgba(0,0,0,0.15); border-color: rgba(59, 130, 246, 0.15);">
+                                    <div class="card-header" style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                                        <h4 style="color: #34d399; font-weight: 700;">🤖 Model Output A</h4>
+                                        <span class="badge badge-green" id="arena-model-a-latency">0ms</span>
+                                    </div>
+                                    <div class="output-console" id="arena-a-response" style="flex-grow: 1; min-height: 250px; max-height: 350px; overflow-y: auto; font-size: 13px; line-height: 1.5; padding: 10px; color: white;">
+                                        Waiting for query execution...
+                                    </div>
+                                    
+                                    <!-- Configuration details -->
+                                    <div style="font-size: 11px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.03);">
+                                        <div class="form-group" style="margin-bottom: 0;">
+                                            <label style="font-size: 10px;">Select Mode</label>
+                                            <select id="arena-a-mode" style="width: 100%; padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: white; font-size: 11px; outline: none;">
+                                                <option value="default" selected>Default</option>
+                                                <option value="analyst">Analyst</option>
+                                                <option value="optimizer">Optimizer</option>
+                                                <option value="refactor">Refactor</option>
+                                                <option value="database">Database</option>
+                                                <option value="security">Security</option>
+                                                <option value="agent">Agent</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0;">
+                                            <label style="font-size: 10px;">Temperature</label>
+                                            <input type="number" id="arena-a-temp" min="0" max="1" step="0.1" value="0.7" style="width: 100%; padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: white; font-size: 11px; outline: none;">
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0;">
+                                            <label style="font-size: 10px;">System Prompt Override</label>
+                                            <input type="text" id="arena-a-system" value="You are Model A, a helpful assistant." style="width: 100%; padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: white; font-size: 11px; outline: none;">
+                                        </div>
+                                    </div>
+ 
+                                     <button type="button" id="btn-choose-model-a" class="btn btn-secondary btn-glow" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;"><i data-lucide="thumbs-up"></i><span>Model A is Better</span></button>
+                                 </div>
+ 
+                                 <!-- Model B Column -->
+                                 <div class="glass-card" style="display: flex; flex-direction: column; gap: 12px; background: rgba(0,0,0,0.15); border-color: rgba(59, 130, 246, 0.15);">
+                                     <div class="card-header" style="border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                                         <h4 style="color: #a78bfa; font-weight: 700;">🤖 Model Output B</h4>
+                                         <span class="badge badge-purple" id="arena-model-b-latency">0ms</span>
+                                     </div>
+                                     <div class="output-console" id="arena-b-response" style="flex-grow: 1; min-height: 250px; max-height: 350px; overflow-y: auto; font-size: 13px; line-height: 1.5; padding: 10px; color: white;">
+                                         Waiting for query execution...
+                                     </div>
+                                     
+                                     <!-- Configuration details -->
+                                     <div style="font-size: 11px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.03);">
+                                         <div class="form-group" style="margin-bottom: 0;">
+                                             <label style="font-size: 10px;">Select Mode</label>
+                                             <select id="arena-b-mode" style="width: 100%; padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: white; font-size: 11px; outline: none;">
+                                                 <option value="default">Default</option>
+                                                 <option value="analyst" selected>Analyst</option>
+                                                 <option value="optimizer">Optimizer</option>
+                                                 <option value="refactor">Refactor</option>
+                                                 <option value="database">Database</option>
+                                                 <option value="security">Security</option>
+                                                 <option value="agent">Agent</option>
+                                             </select>
+                                         </div>
+                                         <div class="form-group" style="margin-bottom: 0;">
+                                             <label style="font-size: 10px;">Temperature</label>
+                                             <input type="number" id="arena-b-temp" min="0" max="1" step="0.1" value="0.85" style="width: 100%; padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: white; font-size: 11px; outline: none;">
+                                         </div>
+                                         <div class="form-group" style="margin-bottom: 0;">
+                                             <label style="font-size: 10px;">System Prompt Override</label>
+                                             <input type="text" id="arena-b-system" value="You are Model B, a helpful assistant." style="width: 100%; padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: white; font-size: 11px; outline: none;">
+                                         </div>
+                                     </div>
+
+                                    <button type="button" id="btn-choose-model-b" class="btn btn-secondary btn-glow" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); border: none;"><i data-lucide="thumbs-up"></i><span>Model B is Better</span></button>
+                                </div>
+                            </div>
+
+                            <!-- Input bar -->
+                            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                <input type="text" id="arena-prompt-input" placeholder="Type comparison query topic here..." style="flex-grow: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.25); color: white; outline: none; font-size: 13.5px;">
+                                <button id="btn-send-arena" class="btn btn-primary btn-glow" style="padding: 0 25px;"><i data-lucide="send"></i><span>Submit Dual Run</span></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-tab Audio Sandbox -->
+                    <div class="sub-tab-content" id="sub-tab-inference-audio">
+                        <div class="grid-2-col" style="margin-bottom: 20px; align-items: stretch;">
+                            <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                                <div>
+                                    <div class="card-header" style="margin-bottom: 12px;">
+                                        <h3>Audio Queries & Transcription Tester</h3>
+                                    </div>
+                                    <p style="color: var(--text-secondary); font-size: 13px; line-height: 1.5; margin-bottom: 15px;">
+                                        Upload a voice query in `.wav` format or use the speech API to record your instructions. The system will transcribe and test the response.
+                                    </p>
+                                    
+                                    <button type="button" id="btn-upload-audio-file" class="btn btn-secondary btn-glow" style="width: 100%; justify-content: center;">
+                                        <i data-lucide="paperclip"></i>
+                                        <span>Upload WAV Audio Query</span>
+                                    </button>
+                                    <input type="file" id="playground-audio-input" style="display: none;" accept="audio/wav">
+                                </div>
+
+                                <!-- Web Speech API Voice Tour Guide panel -->
+                                <div id="voice-tour-overlay" class="glass-card" style="margin-top: 20px; padding: 15px; border-color: rgba(139,92,246,0.25); background: rgba(139,92,246,0.02);">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                        <span style="font-size: 11px; font-weight: 700; color: var(--purple); text-transform: uppercase;">🔊 Web Audio Voice Tour</span>
+                                        <span class="badge badge-purple" style="font-size: 9px;" id="voice-tour-status">Offline</span>
+                                    </div>
+                                    <h4 id="voice-tour-title" style="font-size: 13.5px; color: white; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; margin-bottom: 10px;">Lumen Tour Guide Active</h4>
+                                    
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                        <span style="font-size: 11px; color: var(--text-secondary);">Speech Rate: <strong id="voice-tour-rate-val" style="color: white;">1.0x</strong></span>
+                                        <input type="range" id="voice-tour-rate" min="0.5" max="2" step="0.1" value="1.0" style="width: 100px; accent-color: var(--purple);">
+                                    </div>
+                                    
+                                    <div style="display: flex; gap: 8px;">
+                                        <button id="btn-voice-playpause" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px; flex: 1;"><i data-lucide="play" style="width:12px; height:12px;"></i><span>Play</span></button>
+                                        <button id="btn-voice-stop" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px; flex: 1;"><i data-lucide="square" style="width:12px; height:12px;"></i><span>Stop</span></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="glass-card" style="display: flex; flex-direction: column; gap: 15px;">
+                                <div class="card-header">
+                                    <h3>Speech Recognition Logs</h3>
+                                </div>
+                                <div class="output-console" id="audio-speech-logs" style="flex-grow: 1; min-height: 180px; padding: 12px; font-size: 13px; line-height: 1.5; color: #a3a6b8; background: rgba(0,0,0,0.2);">
+                                    Upload audio file to execute speech-to-text models...
+                                </div>
+                                
+                                <!-- Amplitude waveform visualization -->
+                                <div id="audio-wave-container" style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 8px;">
+                                    <div style="font-size: 10px; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.5px;">WAV Amplitude Waveform</div>
+                                    <div class="audio-wave-bars" style="display: flex; align-items: flex-end; gap: 4px; height: 40px; width: 100%; overflow: hidden; padding-bottom: 2px;">
+                                        <div class="wave-bar" id="wave-bar-1" style="flex-grow: 1; height: 5px; background: var(--blue); border-radius: 2px;"></div>
+                                        <div class="wave-bar" id="wave-bar-2" style="flex-grow: 1; height: 5px; background: var(--blue); border-radius: 2px;"></div>
+                                        <div class="wave-bar" id="wave-bar-3" style="flex-grow: 1; height: 5px; background: var(--purple); border-radius: 2px;"></div>
+                                        <div class="wave-bar" id="wave-bar-4" style="flex-grow: 1; height: 5px; background: var(--purple); border-radius: 2px;"></div>
+                                        <div class="wave-bar" id="wave-bar-5" style="flex-grow: 1; height: 5px; background: var(--blue); border-radius: 2px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-tab Spatial & Multimodal -->
+                    <div class="sub-tab-content" id="sub-tab-inference-multimodal">
+                        <div class="grid-2-col" style="margin-bottom: 20px; align-items: stretch; grid-template-columns: 320px 1fr;">
+                            <div style="display: flex; flex-direction: column; gap: 20px;">
+                                <div class="glass-card">
+                                    <div class="card-header" style="margin-bottom: 12px;">
+                                        <h3>Upload Media File</h3>
+                                    </div>
+                                    <p style="color: var(--text-secondary); font-size: 13px; line-height: 1.5; margin-bottom: 15px;">
+                                        Attach images or video files to process in the multimodal pipeline. The system extracts video keyframes dynamically.
+                                    </p>
+                                    <button type="button" id="btn-upload-image" class="btn btn-secondary btn-glow" style="width: 100%; justify-content: center; margin-bottom: 10px;">
+                                        <i data-lucide="paperclip"></i>
+                                        <span id="image-upload-text">Select Image/Video File</span>
+                                    </button>
+                                    <input type="file" id="playground-image-input" style="display: none;" accept="image/*,video/*">
+                                    
+                                    <span id="playground-image-preview-name" style="font-size: 11px; color: var(--purple); font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 100%; display: block; text-align: center;"></span>
+                                    <button type="button" id="btn-clear-image" class="btn-icon hidden" style="background:none; border:none; cursor:pointer; margin: 5px auto 0; display: block;" title="Remove Media"><i data-lucide="x" style="width: 14px; height: 14px; color: var(--danger);"></i></button>
+                                </div>
+
+                                <!-- Keyframe preview details card -->
+                                <div id="multimodal-preview-card" class="hidden glass-card" style="padding: 15px;">
+                                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                                        <div id="multimodal-preview-thumbnail" style="width: 40px; height: 40px; border-radius: 6px; overflow: hidden; background: rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; font-size: 16px; border: 1px solid rgba(255,255,255,0.1);">📁</div>
+                                        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+                                            <span id="multimodal-preview-filename" style="font-size: 12.5px; font-weight: 600; color: white; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">file.wav</span>
+                                            <span id="multimodal-preview-type" style="font-size: 9.5px; color: var(--text-secondary); text-transform: uppercase;">video/mp4</span>
+                                        </div>
+                                        <button type="button" id="btn-clear-multimodal" class="btn-icon" style="background:none; border:none; cursor:pointer;" title="Remove Attachment"><i data-lucide="x" style="width: 16px; height: 16px; color: var(--danger);"></i></button>
+                                    </div>
+                                    <div id="multimodal-keyframes-preview-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 6px; margin-top: 10px;"></div>
+                                </div>
+                                
+                                <!-- Landslide warning list -->
+                                <div class="glass-card" style="padding: 15px; border-color: rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.02);">
+                                    <h4 style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--danger); margin-bottom: 8px; display: flex; align-items: center; gap: 5px;">
+                                        <i data-lucide="alert-triangle" style="width:14px; height:14px;"></i> Active Natural Hazard Warnings
+                                    </h4>
+                                    <div id="disaster-bulletin-list" style="max-height: 120px; overflow-y: auto; font-size: 11.5px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 6px;">
+                                        <div>Syncing feed alerts...</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Panel Leaflet Map Viewer -->
+                            <div class="glass-card" style="display: flex; flex-direction: column; gap: 12px; height: 100%;">
+                                <div class="map-header" style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Spatial Ceylon Map Routing</span>
+                                    <div style="display: flex; gap: 6px;">
+                                        <button id="btn-toggle-heatmap" class="btn btn-secondary" style="padding: 4px 8px; font-size: 10px; height: auto;" title="Toggle district counts heatmap"><i data-lucide="layers" style="width:12px; height:12px;"></i><span>Heatmap</span></button>
+                                        <button id="btn-toggle-routing" class="btn btn-secondary" style="padding: 4px 8px; font-size: 10px; height: auto;" title="Enter routing validation mode"><i data-lucide="navigation" style="width:12px; height:12px;"></i><span>Routes</span></button>
+                                    </div>
+                                </div>
+                                
+                                <div id="playground-map" style="height: 380px; width: 100%; border-radius: 8px; border: 1px solid var(--border-color); background: #070913; z-index: 1;"></div>
+                                
+                                <!-- Routing info card -->
+                                <div id="routing-info-card" class="hidden" style="background: rgba(10, 15, 30, 0.85); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; font-size: 12px;">
+                                    <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; margin-bottom: 5px; color: var(--blue);">
+                                        <i data-lucide="navigation" style="width: 14px; height: 14px;"></i>
+                                        <span>Ceylon Routing Solved Path</span>
+                                    </div>
+                                    <div id="routing-path-list" style="max-height: 60px; overflow-y: auto; color: var(--text-secondary); line-height: 1.4;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 4: Data Tab -->
+                <section class="tab-pane" id="tab-data">
+                    <div class="sub-tab-bar">
+                        <button class="sub-tab-btn active" data-sub-tab="data-db">Database Records</button>
+                        <button class="sub-tab-btn" data-sub-tab="data-rag">RAG Guide</button>
+                        <button class="sub-tab-btn" data-sub-tab="data-sft">SFT Dataset</button>
+                        <button class="sub-tab-btn" data-sub-tab="data-dpo">DPO Dataset</button>
+                        <button class="sub-tab-btn" data-sub-tab="data-synthetic">Synthetic</button>
+                    </div>
+
+                    <!-- Sub-tab Database Records -->
+                    <div class="sub-tab-content active" id="sub-tab-data-db">
+                        <div class="glass-card" style="padding: 20px;">
+                            <div class="table-header-toolbar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
+                                <div style="display: flex; gap: 10px; flex-grow: 1; max-width: 500px;">
+                                    <input type="text" id="db-search" placeholder="Search database places..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: white; outline: none; font-size: 13.5px;">
+                                    <select id="db-category-filter" style="padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: white; outline: none; font-size: 13px;">
+                                        <option value="ALL">All Categories</option>
+                                        <option value="Waterfall">Waterfall</option>
+                                        <option value="Beach">Beach</option>
+                                        <option value="Historical">Historical</option>
+                                        <option value="National Park">National Park</option>
+                                        <option value="Mountain/Viewpoint">Mountain</option>
+                                    </select>
+                                </div>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <span class="badge" id="db-file-badge">Loading...</span>
+                                    <button id="db-btn-add" class="btn btn-primary" style="padding: 8px 16px; font-size: 13px;">
+                                        <i data-lucide="plus"></i> Add Place
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="samples-table-wrapper" style="max-height: 400px; overflow-y: auto;">
+                                <table class="samples-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 25%;">Name</th>
+                                            <th style="width: 15%;">Category</th>
+                                            <th style="width: 15%;">District</th>
+                                            <th style="width: 12%;">Safety</th>
+                                            <th style="width: 23%;">Activities</th>
+                                            <th style="width: 10%; text-align: center;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="db-records-body">
+                                        <tr>
+                                            <td colspan="6" class="text-center">Loading database table data...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-tab RAG Guide -->
+                    <div class="sub-tab-content" id="sub-tab-data-rag">
+                        <div class="grid-2-col" style="margin-bottom: 20px;">
+                            <!-- Drop Zone Uploader -->
+                            <div class="glass-card" style="padding: 25px;">
+                                <div class="card-header" style="margin-bottom: 15px;">
+                                    <h3>Upload RAG Document</h3>
+                                    <span class="badge badge-purple">Knowledge base</span>
+                                </div>
+                                <div id="rag-drop-zone" class="csv-upload-box" style="border: 2px dashed rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 45px; text-align: center; background: rgba(255,255,255,0.01); cursor: pointer; transition: all 0.3s ease;">
+                                    <i data-lucide="upload-cloud" style="width: 48px; height: 48px; color: var(--blue); margin-bottom: 12px; opacity: 0.8; display: inline-block;"></i>
+                                    <h4 style="margin-bottom: 8px; color: white;">Drag & Drop your travel guide text/PDF file here</h4>
+                                    <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">or <span style="color: var(--blue); text-decoration: underline; font-weight: 600;">browse files</span> from your computer</p>
+                                    <input type="file" id="rag-file-input" style="display: none;" accept=".txt,.pdf,.md">
+                                </div>
+                                
+                                <div id="rag-upload-progress" class="hidden" style="margin-top: 15px; font-size: 12px; color: var(--text-secondary);">
+                                    Uploading and indexing guide contents...
+                                </div>
+                            </div>
+
+                            <!-- Vector inventory list -->
+                            <div class="glass-card" style="padding: 25px;">
+                                <div class="card-header" style="margin-bottom: 15px;">
+                                    <h3>RAG Vector Database Inventory</h3>
+                                </div>
+                                <div class="samples-table-wrapper" style="max-height: 280px; overflow-y: auto;">
+                                    <table class="samples-table">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 60%;">Filename</th>
+                                                <th style="width: 25%;">Size</th>
+                                                <th style="width: 15%; text-align: center;">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="rag-documents-body">
+                                            <tr>
+                                                <td colspan="3" class="text-center">No documents uploaded.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-tab SFT Dataset -->
+                    <div class="sub-tab-content" id="sub-tab-data-sft">
+                        <!-- Stats card -->
+                        <div class="stats-grid" style="margin-bottom: 20px;">
+                            <div class="glass-card stat-card" style="padding: 15px;">
+                                <div class="stat-icon stat-icon-blue"><i data-lucide="list"></i></div>
+                                <div class="stat-data">
+                                    <h3>Total SFT samples</h3>
+                                    <p class="stat-value text-glowing-blue" id="data-sft-count">0</p>
+                                </div>
+                            </div>
+                            <div class="glass-card stat-card" style="padding: 15px;">
+                                <div class="stat-icon stat-icon-purple"><i data-lucide="git-merge"></i></div>
+                                <div class="stat-data">
+                                    <h3>Total DPO Pairs</h3>
+                                    <p class="stat-value text-glowing-purple" id="data-dpo-count">0</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid-2-col" style="margin-bottom: 20px;">
+                            <div class="glass-card">
+                                <div class="card-header" style="margin-bottom: 12px;">
+                                    <h3>SFT Training Samples Lines</h3>
+                                </div>
+                                <div class="samples-table-wrapper" style="max-height: 380px; overflow-y: auto;">
+                                    <table class="samples-table">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 30%;">User Prompt</th>
+                                                <th style="width: 70%;">Assistant Answer Response</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="dataset-samples-body">
+                                            <tr>
+                                                <td colspan="2" class="text-center">Loading conversational datasets...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="glass-card">
+                                <div class="card-header" style="margin-bottom: 12px;">
+                                    <h3>Conversational Template Previewer</h3>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 10px; height: 85%;">
+                                    <label style="font-size: 12px; margin-bottom: 4px; display: block; color: var(--text-secondary);">Formatted Prompt Output Stream Preview</label>
+                                    <div class="output-console" style="flex-grow: 1; min-height: 220px; max-height: 300px; overflow-y: auto; background: rgba(0,0,0,0.3); font-family: var(--font-mono); font-size: 12px; line-height: 1.5; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); color: #c4c8d4; white-space: pre-wrap; word-break: break-all;" id="previewer-code">Loading preview...</div>
+                                    <div class="metric-meter-group" style="margin-top: 15px;">
+                                        <div class="meter-meta" style="font-size: 11px; margin-bottom: 5px; display: flex; justify-content: space-between;">
+                                            <span>Estimated Sequence Space Used</span>
+                                            <span id="previewer-pct-text">0% of 2048</span>
+                                        </div>
+                                        <div class="meter-bar-bg" style="height: 6px;">
+                                            <div class="meter-bar-fill meter-teal" id="previewer-pct-bar" style="width: 0%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-tab DPO Dataset -->
+                    <div class="sub-tab-content" id="sub-tab-data-dpo">
+                        <div class="grid-2-col" style="align-items: stretch; margin-bottom: 20px;">
+                            <!-- DPO Preference Compiler Radios -->
+                            <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column; gap: 15px;">
+                                <div class="card-header" style="margin-bottom: 5px;">
+                                    <h3>DPO Preference Pair Compiler</h3>
+                                    <span class="badge">Align weights</span>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label for="compiler-sft-select">Select Raw SFT Reference Prompt</label>
+                                    <select id="compiler-sft-select" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: white; outline: none; font-size: 13px;"></select>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0; display: flex; gap: 10px;">
+                                    <textarea id="compiler-prompt" placeholder="Or enter a custom prompt topic context here..." style="width: 100%; height: 50px; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: white; outline: none; resize: none; font-size: 13px;"></textarea>
+                                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                                        <button type="button" id="btn-compiler-load-random" class="btn btn-secondary" style="padding: 6px 12px; font-size: 11.5px; height: auto; white-space: nowrap;"><i data-lucide="shuffle" style="width:12px; height:12px;"></i> Random SFT</button>
+                                        <button type="button" id="btn-compiler-generate" class="btn btn-primary" style="padding: 6px 12px; font-size: 11.5px; height: auto; white-space: nowrap;"><i data-lucide="sparkles" style="width:12px; height:12px;"></i> Generate A/B</button>
+                                    </div>
+                                </div>
+                                
+                                <div id="dpo-similarity-warning" class="hidden" style="padding: 8px 12px; background: rgba(245, 158, 11, 0.12); border: 1.5px solid rgba(245, 158, 11, 0.35); border-radius: 8px; color: var(--gold); font-size: 12px; display: flex; flex-direction: column; gap: 4px;">
+                                    <div style="font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                                        <i data-lucide="alert-triangle" style="width: 14px; height: 14px;"></i>
+                                        <span>Similarity Warning: <span id="dpo-sim-percentage">0%</span> match</span>
+                                    </div>
+                                    <div id="dpo-sim-matched-text" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); max-height: 48px; overflow-y: auto;"></div>
+                                </div>
+
+                                <div id="compiler-candidates-wrapper" style="display: none; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #34d399; font-weight: 700;">
+                                            <input type="radio" name="pref-choice" id="pref-select-a" checked style="accent-color: #34d399; width:15px; height:15px;"> Response Candidate A
+                                        </label>
+                                        <textarea id="compiler-candidate-a" style="width: 100%; height: 140px; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; resize: none; font-size: 12.5px; outline: none;"></textarea>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #a78bfa; font-weight: 700;">
+                                            <input type="radio" name="pref-choice" id="pref-select-b" style="accent-color: #8b5cf6; width:15px; height:15px;"> Response Candidate B
+                                        </label>
+                                        <textarea id="compiler-candidate-b" style="width: 100%; height: 140px; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; resize: none; font-size: 12.5px; outline: none;"></textarea>
+                                    </div>
+                                </div>
+                                <div id="compiler-actions-box" style="display: none; justify-content: center; gap: 15px; margin-top: 10px;">
+                                    <button id="btn-compiler-submit" class="btn btn-primary btn-glow" style="padding: 8px 20px; font-size: 13px;"><i data-lucide="check-square"></i><span>Save DPO Pair</span></button>
+                                    <button id="btn-compiler-reset" class="btn btn-secondary" style="padding: 8px 20px; font-size: 13px;"><i data-lucide="refresh-cw"></i><span>Reset</span></button>
+                                </div>
+                            </div>
+
+                            <!-- DPO compiled pairs list -->
+                            <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                                <div>
+                                    <div class="card-header" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                                        <h3>Compiled DPO Pairs Manager</h3>
+                                        <span class="badge badge-purple" id="compiler-dpo-badge">0 Pairs</span>
+                                    </div>
+                                    <div class="samples-table-wrapper" style="max-height: 280px; overflow-y: auto;">
+                                        <table class="samples-table">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width: 25%;">Prompt</th>
+                                                    <th style="width: 32%;">Chosen Response</th>
+                                                    <th style="width: 33%;">Rejected Response</th>
+                                                    <th style="width: 10%; text-align: center;">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="compiler-dpo-body">
+                                                <tr>
+                                                    <td colspan="4" class="text-center">Loading compiled preference pairs...</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-tab Synthetic -->
+                    <div class="sub-tab-content" id="sub-tab-data-synthetic">
+                        <div class="glass-card" style="max-width: 600px; margin: 0 auto; padding: 25px;">
+                            <div class="card-header" style="margin-bottom: 15px;">
+                                <h3>Synthetic Q&A Generator Settings</h3>
+                            </div>
+                            <p style="color: var(--text-secondary); font-size: 13.5px; margin-bottom: 20px; line-height: 1.5;">
+                                Auto-synthesizes dataset blocks. Overwriting SFT/DPO dataset files lets models learn custom Sri Lanka travel routing patterns.
+                            </p>
+                            <form id="synthetic-gen-form" style="display: flex; flex-direction: column; gap: 15px;">
+                                <div class="form-group">
+                                    <label>Database Spot Category</label>
+                                    <select id="synthetic-category" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: white; outline: none; font-size: 13px;">
+                                        <option value="Waterfall">Waterfall</option>
+                                        <option value="Beach">Beach</option>
+                                        <option value="Historical">Historical</option>
+                                        <option value="National Park">National Park</option>
+                                        <option value="Mountain/Viewpoint">Mountain</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Dataset Target type</label>
+                                    <select id="synthetic-dataset-type" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: white; outline: none; font-size: 13px;">
+                                        <option value="sft" selected>SFT Conversational (sft.jsonl)</option>
+                                        <option value="dpo">DPO Preference Pair (dpo_data.jsonl)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Number of Samples to Generate</label>
+                                    <input type="number" id="synthetic-num-samples" min="1" max="10" value="2" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: white; outline: none; font-size: 13px;">
+                                </div>
+                                <button type="button" id="btn-generate-synthetic" class="btn btn-primary btn-glow" style="width: 100%; justify-content: center; margin-top: 10px;">
+                                    <i data-lucide="sparkles"></i>
+                                    <span>Synthesize Dataset Blocks</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 5: Security Tab -->
+                <section class="tab-pane" id="tab-security">
+                    <div class="sub-tab-bar">
+                        <button class="sub-tab-btn active" data-sub-tab="security-dashboard">Dashboard</button>
+                        <button class="sub-tab-btn" data-sub-tab="security-config">Config Guards</button>
+                        <button class="sub-tab-btn" data-sub-tab="security-logs">Audit Log</button>
+                        <button class="sub-tab-btn" data-sub-tab="security-integrity">Integrity Checks</button>
+                    </div>
+
+                    <!-- Security Dashboard Sub-tab -->
+                    <div class="sub-tab-content active" id="sub-tab-security-dashboard">
+                        <div class="glass-card">
+                            <div class="card-header" style="margin-bottom: 15px;">
+                                <h3>Security Guard active Layers</h3>
+                            </div>
+                            <p style="color: var(--text-secondary); font-size: 13.5px; margin-bottom: 20px;">
+                                Overview of the 12 active security filters, prompt sanitizers, and audit verification status.
+                            </p>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;" id="security-dashboard-grid">
+                                <div class="glass-card" style="padding: 15px; display: flex; align-items: center; gap: 12px; border-left: 3px solid var(--purple);">
+                                    <div style="background: rgba(139,92,246,0.1); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--purple);"><i data-lucide="shield" style="width: 16px; height: 16px;"></i></div>
+                                    <div>
+                                        <h4 style="font-size: 13.5px; color: white;">Unicode Normalization</h4>
+                                        <p style="font-size: 11px; color: var(--text-secondary);">Layer 1 - Input Sanitizer</p>
+                                    </div>
+                                    <span class="badge badge-purple" style="margin-left: auto;">Enabled</span>
+                                </div>
+                                <div class="glass-card" style="padding: 15px; display: flex; align-items: center; gap: 12px; border-left: 3px solid var(--purple);">
+                                    <div style="background: rgba(139,92,246,0.1); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--purple);"><i data-lucide="shield" style="width: 16px; height: 16px;"></i></div>
+                                    <div>
+                                        <h4 style="font-size: 13.5px; color: white;">Homoglyph Scanner</h4>
+                                        <p style="font-size: 11px; color: var(--text-secondary);">Layer 8 - Characters Check</p>
+                                    </div>
+                                    <span class="badge badge-purple" style="margin-left: auto;">Enabled</span>
+                                </div>
+                                <div class="glass-card" style="padding: 15px; display: flex; align-items: center; gap: 12px; border-left: 3px solid var(--purple);">
+                                    <div style="background: rgba(139,92,246,0.1); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--purple);"><i data-lucide="shield" style="width: 16px; height: 16px;"></i></div>
+                                    <div>
+                                        <h4 style="font-size: 13.5px; color: white;">Audit HMAC Signatures</h4>
+                                        <p style="font-size: 11px; color: var(--text-secondary);">Layer 6 - Audit Validation</p>
+                                    </div>
+                                    <span class="badge badge-purple" style="margin-left: auto;">Enabled</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Config Settings Sub-tab -->
+                    <div class="sub-tab-content" id="sub-tab-security-config">
+                        <div class="glass-card">
+                            <div class="card-header">
+                                <h3>12-Layer Security Guards Config</h3>
+                                <span class="badge badge-purple" id="security-active-badge">Active Protection</span>
+                            </div>
+                            <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 20px;">
+                                Toggle security layers in real time. Toggling a setting updates the `configs/security.yaml` configuration file and refreshes settings in memory.
+                            </p>
+                            <div id="security-layers-grid" class="grid-2-col" style="gap: 15px;"></div>
+                            <div class="form-actions" style="margin-top: 25px;">
+                                <button type="button" id="btn-save-security-config" class="btn btn-primary">
+                                    <i data-lucide="save"></i>
+                                    <span>Save Security Config</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Audit Log Sub-tab -->
+                    <div class="sub-tab-content" id="sub-tab-security-logs">
+                        <div class="glass-card">
+                            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h3>Security Guard Audit Events</h3>
+                                <div style="display: flex; gap: 8px;">
+                                    <span class="badge" id="security-integrity-badge">Integrity: Verifying...</span>
+                                    <button type="button" id="btn-refresh-security-logs" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px; height: auto;">
+                                        <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i>
+                                        <span>Refresh</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 20px;">
+                                Displays safety event logs captured by security middleware and guards (Unicode normalcy filters, prompt injections, rate limit blocks, and data leak protection rules).
+                            </p>
+                            <div class="samples-table-wrapper" style="max-height: 400px; overflow-y: auto;">
+                                <table class="samples-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 18%;">Timestamp</th>
+                                            <th style="width: 15%;">Client IP</th>
+                                            <th style="width: 15%;">Endpoint</th>
+                                            <th style="width: 10%; text-align: center;">Level</th>
+                                            <th style="width: 42%;">Message</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="security-logs-body">
+                                        <tr>
+                                            <td colspan="5" class="text-center">Loading audit log events...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Pagination Controls -->
+                            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 15px; margin-top: 15px;">
+                                <button type="button" id="btn-security-logs-prev" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; height: auto;">Previous</button>
+                                <span id="security-logs-page-indicator" style="font-size: 13px; color: var(--text-secondary);">Page 1</span>
+                                <button type="button" id="btn-security-logs-next" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; height: auto;">Next</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Integrity Sub-tab -->
+                    <div class="sub-tab-content" id="sub-tab-security-integrity">
+                        <div class="glass-card" style="margin-bottom: 20px;">
+                            <div class="card-header">
+                                <h3>Cryptographic Integrity Chain Validator</h3>
+                            </div>
+                            <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 20px;">
+                                Real-time verification status of base checkpoint models and the cryptographic audit ledger.
+                            </p>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 15px;">
+                                <div class="glass-card" style="padding: 15px; background: rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px;">
+                                    <div style="background: rgba(16,185,129,0.1); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #10b981;"><i data-lucide="check" style="width: 18px; height: 18px;"></i></div>
+                                    <div>
+                                        <h4 style="font-size: 14px; color: white;">Checkpoint Signatures</h4>
+                                        <p style="font-size: 11px; color: var(--text-secondary);">GRCh38 signature matches base model weights</p>
+                                    </div>
+                                    <span class="badge badge-green" style="margin-left: auto;">Verified</span>
+                                </div>
+                                <div class="glass-card" style="padding: 15px; background: rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px;">
+                                    <div style="background: rgba(16,185,129,0.1); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #10b981;"><i data-lucide="check" style="width: 18px; height: 18px;"></i></div>
+                                    <div>
+                                        <h4 style="font-size: 14px; color: white;">Ledger Tamper Checker</h4>
+                                        <p style="font-size: 11px; color: var(--text-secondary);">SHA-256 integrity hash sequence verified back to origin</p>
+                                    </div>
+                                    <span class="badge badge-green" style="margin-left: auto;">Verified</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Place Modal Overlay -->
+    <div id="db-modal" class="modal-backdrop hidden">
+        <div class="glass-card modal-content" style="max-width: 700px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <h3 id="modal-title">Edit Place Detail</h3>
+                <button type="button" id="modal-close" class="btn-icon" style="background: none; border: none; color: white; cursor: pointer;"><i data-lucide="x"></i></button>
+            </div>
+            <form id="db-form" class="modal-form" style="display: flex; flex-direction: column; flex-grow: 1; min-height: 0;">
+                <input type="hidden" id="form-id">
+                <div class="form-scroll-container" style="flex-grow: 1; overflow-y: auto; padding: 15px 5px; max-height: 55vh;">
+                    <div class="grid-2-col" style="gap: 15px;">
+                        <div class="form-group">
+                            <label for="form-name">Name</label>
+                            <input type="text" id="form-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="form-category">Category</label>
+                            <input type="text" id="form-category" required placeholder="e.g. Beach, Waterfall">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-district">District</label>
+                            <input type="text" id="form-district" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="form-province">Province</label>
+                            <input type="text" id="form-province" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="form-lat">Latitude</label>
+                            <input type="number" id="form-lat" step="any" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="form-lng">Longitude</label>
+                            <input type="number" id="form-lng" step="any" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="form-safety">Safety Level</label>
+                            <select id="form-safety">
+                                <option value="Safe">Safe</option>
+                                <option value="Moderate">Moderate</option>
+                                <option value="Dangerous">Dangerous</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="form-wildlife">Wildlife Hazard</label>
+                            <input type="text" id="form-wildlife">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-popularity">Tourist Popularity</label>
+                            <select id="form-popularity">
+                                <option value="High">High</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Low">Low</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="form-budget">Budget Category</label>
+                            <select id="form-budget">
+                                <option value="Free">Free</option>
+                                <option value="Budget">Budget</option>
+                                <option value="Moderate">Moderate</option>
+                                <option value="Expensive">Expensive</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="form-opening">Opening Hours</label>
+                            <input type="text" id="form-opening">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-mobile">Mobile Signal</label>
+                            <input type="text" id="form-mobile">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-road">Road Condition</label>
+                            <input type="text" id="form-road">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-activities">Activities</label>
+                            <input type="text" id="form-activities" placeholder="Swimming, Hiking...">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-ticket">Ticket Price</label>
+                            <input type="text" id="form-ticket">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-best-time">Best Time to Visit</label>
+                            <input type="text" id="form-best-time">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-height">Height (m)</label>
+                            <input type="text" id="form-height">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-length">Length (km)</label>
+                            <input type="text" id="form-length">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-surfing">Surfing (yes/no)</label>
+                            <input type="text" id="form-surfing">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-family">Family Friendly (yes/no)</label>
+                            <input type="text" id="form-family">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-parking">Parking Available (yes/no)</label>
+                            <input type="text" id="form-parking">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-toilets">Toilets (yes/no)</label>
+                            <input type="text" id="form-toilets">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-food">Food Nearby (yes/no)</label>
+                            <input type="text" id="form-food">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-wheelchair">Wheelchair Access (yes/no)</label>
+                            <input type="text" id="form-wheelchair">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-camping">Camping Allowed (yes/no)</label>
+                            <input type="text" id="form-camping">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-guide">Guide Required (yes/no)</label>
+                            <input type="text" id="form-guide">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-rain">Rain Sensitivity</label>
+                            <input type="text" id="form-rain">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-monsoon">Monsoon Note</label>
+                            <input type="text" id="form-monsoon">
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label for="form-description">Description</label>
+                            <textarea id="form-description" required style="width: 100%; min-height: 80px; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; outline: none;"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions" style="margin-top: 15px; display: flex; gap: 10px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05);">
+                    <button type="submit" id="btn-save-place" class="btn btn-primary" style="flex: 1;">
+                        <i data-lucide="save"></i>
+                        <span>Save Record</span>
+                    </button>
+                    <button type="button" id="btn-cancel-place" class="btn btn-secondary" style="flex: 1;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Custom Mode Modal -->
+    <div class="modal-backdrop hidden" id="custom-mode-modal">
+        <div class="glass-card modal-card" style="max-width: 500px; padding: 25px;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 id="custom-mode-modal-title" style="margin: 0; color: white;">Create Custom AI Mode</h3>
+                <button id="custom-mode-modal-close" class="btn-icon" type="button"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
+            </div>
+            <form id="custom-mode-form" style="display: flex; flex-direction: column; gap: 15px;">
+                <div class="form-group">
+                    <label for="custom-mode-cmd">Slash Command (e.g. /translator)</label>
+                    <input type="text" id="custom-mode-cmd" placeholder="/my-mode" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; outline: none;">
+                </div>
+                <div class="form-group">
+                    <label for="custom-mode-name">Display Name</label>
+                    <input type="text" id="custom-mode-name" placeholder="My Mode" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; outline: none;">
+                </div>
+                <div class="form-group">
+                    <label for="custom-mode-purpose">Purpose Description</label>
+                    <input type="text" id="custom-mode-purpose" placeholder="What does this mode do?" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; outline: none;">
+                </div>
+                <div class="form-group">
+                    <label for="custom-mode-color">Theme Color</label>
+                    <select id="custom-mode-color" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; outline: none;">
+                        <option value="grey">Grey</option>
+                        <option value="blue">Blue</option>
+                        <option value="teal">Teal</option>
+                        <option value="gold">Gold</option>
+                        <option value="purple">Purple</option>
+                        <option value="red">Red</option>
+                        <option value="green" selected>Green</option>
+                        <option value="orange">Orange</option>
+                        <option value="pink">Pink</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="custom-mode-system">System Prompt</label>
+                    <textarea id="custom-mode-system" placeholder="System instructions for the AI model..." required style="width: 100%; height: 80px; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; outline: none; resize: none;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="custom-mode-quick-prompts">Quick Prompts (Comma separated, or leave blank)</label>
+                    <input type="text" id="custom-mode-quick-prompts" placeholder="e.g. Quick question 1, Quick question 2" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; outline: none;">
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-custom-mode" style="flex: 1;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Create Mode</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Demo Mode warning modal popup overlay -->
+    <div class="demo-warning-overlay" id="demo-mode-warning-overlay">
+        <div class="demo-warning-card">
+            <div class="demo-warning-icon">
+                <i data-lucide="alert-triangle" style="width: 32px; height: 32px;"></i>
+            </div>
+            <h3>Demo Mode Active</h3>
+            <p>
+                A local model checkpoint was not detected. The dashboard is running in <strong>Demo Mode</strong> utilizing mocked weights to avoid heavy 15GB downloads. Outgoing responses will be mock simulated.
+            </p>
+            <button class="btn btn-primary btn-glow" id="btn-dismiss-demo-warning" style="width: 100%; justify-content: center;">
+                <span>Understand and Proceed</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+
+    <!-- Scripts -->
+    <script src="/static/main.js"></script>
+</body>
+</html>
