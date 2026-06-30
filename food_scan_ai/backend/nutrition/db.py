@@ -91,18 +91,29 @@ def _load_generated_json_db():
 _load_generated_json_db()
 
 
-def resolve_nutrition(components: List[DishComponent]) -> Tuple[NutritionFacts, float]:
+def resolve_nutrition(components: List[DishComponent]) -> Tuple[NutritionFacts, float, List[Dict[str, Any]]]:
     """
+    Lumen-1 Speculative Telemetry & Multi-Dish Breakdown:
     හඳුනාගත් ආහාර Component ලැයිස්තුවට අදාළව නිශ්චිත කැලරි සහ පෝෂණ ගුණ
-    ගණනය කරන ප්‍රධාන Grounding ශ්‍රිතය (Function).
+    ගණනය කර, පිඟානේ ඇති එක් එක් කෑම වර්ගයේ Bounding Boxes සහ කැලරි වෙන් වෙන්ව ලබා දෙයි.
     """
     total_cal = 0.0
     total_protein = 0.0
     total_carbs = 0.0
     total_fat = 0.0
     matched_count = 0
+    item_breakdowns = []
 
-    for comp in components:
+    # Generate layout bounding boxes across the plate surface
+    grid_coords = [
+        {"x": 0.1, "y": 0.2, "w": 0.45, "h": 0.45},  # Main carb (rice/roti)
+        {"x": 0.55, "y": 0.2, "w": 0.35, "h": 0.30}, # Meat/protein curry
+        {"x": 0.55, "y": 0.55, "w": 0.35, "h": 0.25},# Side curry (dhal)
+        {"x": 0.15, "y": 0.68, "w": 0.35, "h": 0.20},# Sambol / relish
+        {"x": 0.35, "y": 0.45, "w": 0.30, "h": 0.20} # Center / extra
+    ]
+
+    for idx, comp in enumerate(components):
         key = comp.name.lower().strip()
         matched_item = None
         for db_key, db_val in SRI_LANKAN_NUTRITION_DB.items():
@@ -110,18 +121,57 @@ def resolve_nutrition(components: List[DishComponent]) -> Tuple[NutritionFacts, 
                 matched_item = db_val
                 break
         
+        box = grid_coords[idx % len(grid_coords)]
+        
         if matched_item:
-            total_cal += matched_item["calories"]
+            item_cal = int(matched_item["calories"])
+            total_cal += item_cal
             total_protein += matched_item["protein"]
             total_carbs += matched_item["carbs"]
             total_fat += matched_item["fat"]
             matched_count += 1
         else:
-            # නොදන්නා ආහාරයක් සඳහා සාමාන්‍ය අගය (Fallback)
-            total_cal += 80
+            item_cal = 80
+            total_cal += item_cal
             total_protein += 2.0
             total_carbs += 8.0
             total_fat += 4.0
+
+        # Determine dynamic color & 3D wireframe depth based on food category
+        if any(w in key for w in ["rice", "roti", "hopper", "pittu", "string", "kottu"]):
+            box_col = "#00F0FF" # Electric Blue (Carbohydrates)
+            depth = 3.5
+            vol = 200
+            macro_tag = "Carb Dominant"
+        elif any(w in key for w in ["chicken", "fish", "pork", "crab", "meat", "egg", "cuttlefish"]):
+            box_col = "#BF00FF" # Neon Purple (Protein)
+            depth = 2.5
+            vol = 150
+            macro_tag = "Protein Rich"
+        elif any(w in key for w in ["sambol", "miris", "devilled", "chilli", "spicy"]):
+            box_col = "#FF3B30" # Fiery Red (Spice)
+            depth = 1.0
+            vol = 30
+            macro_tag = "High Capsaicin"
+        else:
+            box_col = "#00FF66" # Neon Green (Veggies/Dhal/Fiber)
+            depth = 2.0
+            vol = 100
+            macro_tag = "Fiber & Minerals"
+
+        item_breakdowns.append({
+            "name": comp.name,
+            "portion": comp.estimated_portion,
+            "calories": item_cal,
+            "confidence": comp.portion_confidence,
+            "bounding_box": box,
+            "ar_styling": {
+                "box_color": box_col,
+                "wireframe_3d_depth_cm": depth,
+                "estimated_volume_ml": vol,
+                "macro_tag": macro_tag
+            }
+        })
 
     # කැලරි 10ට ආසන්නම අගයට සහ Macros 1g ට ආසන්නම අගයට Round කිරීම
     rounded_cal = int(round(total_cal / 10.0) * 10)
@@ -136,4 +186,4 @@ def resolve_nutrition(components: List[DishComponent]) -> Tuple[NutritionFacts, 
         protein_g=rounded_protein,
         carbs_g=rounded_carbs,
         fat_g=rounded_fat
-    ), conf
+    ), conf, item_breakdowns

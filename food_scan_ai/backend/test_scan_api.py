@@ -11,9 +11,19 @@ import base64
 
 API_URL = "http://127.0.0.1:8000/api/food/scan"
 
-# අත්හදා බැලීම සඳහා ව්‍යාජ (Dummy) Base64 Image දත්තයක්
-dummy_image_data = b"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" * 50
-base64_str = base64.b64encode(dummy_image_data).decode('utf-8')
+import os
+
+IMAGE_PATH = "test_image.jpg"
+
+if os.path.exists(IMAGE_PATH):
+    print(f"📸 Found '{IMAGE_PATH}'! Sending real image to AI...")
+    with open(IMAGE_PATH, "rb") as image_file:
+        base64_str = base64.b64encode(image_file.read()).decode('utf-8')
+else:
+    print("⚠️ No 'test_image.jpg' found. Sending a Dummy Image...")
+    # අත්හදා බැලීම සඳහා ව්‍යාජ (Dummy) Base64 Image දත්තයක්
+    dummy_image_data = b"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" * 50
+    base64_str = base64.b64encode(dummy_image_data).decode('utf-8')
 
 payload = {
     "image_base64": base64_str,

@@ -138,7 +138,7 @@ def generate_database_with_ai(model_id: str = AI_MODEL_NAME, target_items: int =
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     model = AutoModelForCausalLM.from_pretrained(model_id, quantization_config=bnb_config, device_map="auto")
 
-    items_per_cat = target_items // len(CATEGORIES)
+    items_per_cat = 15  # Generate in small batches for better reliability
 
     for idx, category in enumerate(CATEGORIES, 1):
         # කාල සීමාව (5 Hours) පරීක්ෂා කිරීම
@@ -168,37 +168,111 @@ Do NOT output any intro or outro markdown text, ONLY valid JSON."""
         inputs = tokenizer([text], return_tensors="pt").to("cuda")
 
         with torch.no_grad():
-            outputs = model.generate(**inputs, max_new_tokens=1500, temperature=0.7)
+            outputs = model.generate(**inputs, max_new_tokens=3000,
+            temperature=0.8,
+            do_sample=True,
+            top_p=0.95)
             
         response_text = tokenizer.decode(outputs[0][inputs.input_ids.shape[1]:], skip_special_tokens=True)
+        print("\n========== RAW MODEL OUTPUT ==========")
+        print(response_text[:4000])
+        print("=====================================\n")
+        response_text = response_text.replace("```json","").replace("```","").strip()
+
         
-        # JSON Extract & Parse with Deduplication
+        # JSON Extract & Universal Item Parser (Handles List & Dict formats + Key Aliases)
+        extracted_items = []  # List of tuples: (food_name, dict_of_nutrition)
+        
+        # Method 1: Try parsing full JSON (List or Dict)
         try:
-            json_str = response_text[response_text.find("{"):response_text.rfind("}")+1]
-            batch_data = json.loads(json_str)
-            new_count = 0
-            dups_skipped = 0
-            for k, v in batch_data.items():
-                clean_key = k.lower().strip()
-                norm_key = _normalize_food_name(clean_key)
+            first_brace = response_text.find("{")
+            first_bracket = response_text.find("[")
+            
+            start_idx = -1
+            if first_brace != -1 and first_bracket != -1:
+                start_idx = min(first_brace, first_bracket)
+            elif first_brace != -1:
+                start_idx = first_brace
+            elif first_bracket != -1:
+                start_idx = first_bracket
                 
-                # Fuzzy Deduplication Check
-                if norm_key in existing_normalized_names:
-                    dups_skipped += 1
-                    continue
-                    
-                if "calories" in v and "protein" in v:
+            if start_idx != -1:
+                end_char = "]" if response_text[start_idx] == "[" else "}"
+                end_idx = response_text.rfind(end_char)
+                if end_idx != -1:
+                    raw_json = json.loads(response_text[start_idx:end_idx+1])
+                    if isinstance(raw_json, list):
+                        for item in raw_json:
+                            if isinstance(item, dict):
+                                fname = item.get("food_name") or item.get("foodname") or item.get("foodName") or item.get("name") or item.get("item_name") or item.get("item") or item.get("dish") or item.get("dish_name")
+                                if fname:
+                                    extracted_items.append((fname, item))
+                    elif isinstance(raw_json, dict):
+                        for k, v in raw_json.items():
+                            if isinstance(v, dict):
+                                extracted_items.append((k, v))
+        except Exception:
+            pass
+
+        # Method 2: Fallback Regex Extraction if JSON loading failed or returned 0 items
+        if not extracted_items:
+            dict_pattern = r'"([^"]+)":\s*\{([^}]+)\}'
+            for fname, val_str in re.findall(dict_pattern, response_text):
+                try:
+                    extracted_items.append((fname.rstrip(":").strip(), json.loads("{" + val_str + "}")))
+                except Exception:
+                    pass
+
+            obj_pattern = r'\{[^{}]*(?:"food_name"|"foodname"|"foodName"|"name"|"item_name"|"item"|"dish")[^{}]*\}'
+            for obj_str in re.findall(obj_pattern, response_text, re.IGNORECASE):
+                try:
+                    obj_dict = json.loads(obj_str)
+                    # Find first matching string value that looks like a name
+                    fname = obj_dict.get("food_name") or obj_dict.get("foodname") or obj_dict.get("foodName") or obj_dict.get("name") or obj_dict.get("item_name") or obj_dict.get("item") or obj_dict.get("dish")
+                    if not fname:
+                        for k, val in obj_dict.items():
+                            if isinstance(val, str) and not k.lower() in ["calories", "protein", "carbs", "fat", "fats", "carbohydrates"]:
+                                fname = val
+                                break
+                    if fname:
+                        extracted_items.append((fname, obj_dict))
+                except Exception:
+                    pass
+
+        new_count = 0
+        dups_skipped = 0
+        for k, v in extracted_items:
+            clean_key = str(k).lower().strip()
+            norm_key = _normalize_food_name(clean_key)
+            
+            # Fuzzy Deduplication Check
+            if norm_key in existing_normalized_names:
+                dups_skipped += 1
+                continue
+                
+            # Extract aliases for nutrition values
+            cal = v.get("calories") or v.get("cals") or v.get("energy")
+            prot = v.get("protein") or v.get("proteins")
+            carb = v.get("carbs") or v.get("carbohydrates") or v.get("total_carbs")
+            fat = v.get("fat") or v.get("fats") or v.get("total_fat")
+            
+            if cal is not None and prot is not None:
+                try:
                     generated_db[clean_key] = {
-                        "calories": int(v.get("calories", 100)),
-                        "protein": float(v.get("protein", 2.0)),
-                        "carbs": float(v.get("carbs", 15.0)),
-                        "fat": float(v.get("fat", 3.0))
+                        "calories": int(float(cal)),
+                        "protein": float(prot),
+                        "carbs": float(carb if carb is not None else 15.0),
+                        "fat": float(fat if fat is not None else 3.0)
                     }
                     existing_normalized_names.add(norm_key)
                     new_count += 1
-            print(f"   ✨ අලුතින් ආහාර {new_count} ක් එක් කරන ලදී. (Skipped Duplicates: {dups_skipped} | මුළු සංඛ්‍යාව: {len(generated_db)})")
-        except Exception as e:
-            print(f"   ⚠️ Category {idx} parsing skipped due to formatting: {e}")
+                    
+                    # සෑම නව ආහාර 5 කට වරක්ම ක්ෂණිකව Save කිරීම (Instant Save every 5 items)
+                    if new_count % 5 == 0:
+                        save_json_incrementally(generated_db, OUTPUT_FILE_PATH)
+                except (ValueError, TypeError):
+                    continue
+        print(f"   ✨ අලුතින් ආහාර {new_count} ක් එක් කරන ලදී. (Skipped Duplicates: {dups_skipped} | මුළු සංඛ්‍යාව: {len(generated_db)})")
             
         # Incremental Save (සෑම කාණ්ඩයක් අවසානයේම Save වේ)
         save_json_incrementally(generated_db, OUTPUT_FILE_PATH)

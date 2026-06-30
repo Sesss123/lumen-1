@@ -11,6 +11,7 @@ import torch
 def setup_colab_environment():
     print("🛠️ Installing Unsloth, TRL, and dependencies for fast 4-bit fine-tuning...")
     os.system("pip install --upgrade pip")
+    os.system("pip install unsloth_zoo")
     os.system("pip install --no-deps \"unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git\"")
     os.system("pip install --no-deps xformers trl peft accelerate bitsandbytes")
     print("✅ Environment installation completed!")
@@ -21,6 +22,7 @@ def train_model():
         from datasets import load_dataset # type: ignore
         from trl import SFTTrainer # type: ignore
         from transformers import TrainingArguments # type: ignore
+        from unsloth.chat_templates import get_chat_template # type: ignore
     except ImportError:
         print("⚠️ Unsloth not detected. Running auto-install...")
         setup_colab_environment()
@@ -28,6 +30,7 @@ def train_model():
         from datasets import load_dataset # type: ignore
         from trl import SFTTrainer # type: ignore
         from transformers import TrainingArguments # type: ignore
+        from unsloth.chat_templates import get_chat_template # type: ignore
 
     max_seq_length = 2048
     dtype = None # Auto detection
@@ -41,6 +44,11 @@ def train_model():
         max_seq_length = max_seq_length,
         dtype = dtype,
         load_in_4bit = load_in_4bit,
+    )
+
+    tokenizer = get_chat_template(
+        tokenizer,
+        chat_template = "qwen-2.5",
     )
 
     # Do model patching for LoRA
@@ -65,11 +73,18 @@ def train_model():
     print(f"📂 Loading dataset from {dataset_path}...")
     dataset = load_dataset("json", data_files=dataset_path, split="train")
 
+    def formatting_prompts_func(examples):
+        convos = examples["messages"]
+        texts = [tokenizer.apply_chat_template(convo, tokenize=False, add_generation_prompt=False) for convo in convos]
+        return { "text" : texts }
+
+    dataset = dataset.map(formatting_prompts_func, batched = True)
+
     trainer = SFTTrainer(
         model = model,
         tokenizer = tokenizer,
         train_dataset = dataset,
-        dataset_text_field = "messages",
+        dataset_text_field = "text",
         max_seq_length = max_seq_length,
         dataset_num_proc = 2,
         packing = False,
@@ -82,6 +97,7 @@ def train_model():
             fp16 = not torch.cuda.is_bf16_supported(),
             bf16 = torch.cuda.is_bf16_supported(),
             logging_steps = 1,
+            save_strategy = "no",
             optim = "adamw_8bit",
             weight_decay = 0.01,
             lr_scheduler_type = "linear",

@@ -29,6 +29,7 @@ class HTTPScanRequest(BaseModel):
 
 # 1. Real-Time WebSocket Streaming Endpoint for Mobile Apps
 @app.websocket("/api/food/scan/live")
+@app.websocket("/ws/scan")
 async def live_scan_websocket(websocket: WebSocket):
     await websocket_endpoint(websocket)
 
